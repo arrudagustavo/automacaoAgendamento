@@ -10,25 +10,37 @@ document.addEventListener('DOMContentLoaded', () => {
         GoogleAPI.requestToken();
     });
 
+    // ESCUTA O SUCESSO DO LOGIN
     document.addEventListener('google-auth-success', async () => {
-        const user = await GoogleAPI.getProfile();
-        if (user) {
-            document.getElementById('user-name').textContent = user.name;
-            loginSection.classList.remove('active');
-            schedulingSection.classList.add('active');
+        console.log("Login OK! Forçando troca de tela...");
 
-            const agora = new Date();
-            const dataHoje = agora.toISOString().split('T')[0];
-            const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
-            document.getElementById('schedule-date').value = dataHoje;
-            document.getElementById('schedule-time').value = horaAgora;
+        // 1. TROCA A TELA IMEDIATAMENTE
+        loginSection.classList.remove('active');
+        schedulingSection.classList.add('active');
 
-            await GoogleAPI.fetchContacts();
+        // 2. PREENCHE DATA E HORA (SYSDATE)
+        const agora = new Date();
+        const dataHoje = agora.toISOString().split('T')[0];
+        const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
+
+        document.getElementById('schedule-date').value = dataHoje;
+        document.getElementById('schedule-time').value = horaAgora;
+
+        // 3. CARREGA DADOS DO USUÁRIO EM SEGUNDO PLANO
+        try {
+            const user = await GoogleAPI.getProfile();
+            document.getElementById('user-name').textContent = user ? user.name : "Barbeiro";
+        } catch (e) {
+            document.getElementById('user-name').textContent = "Barbeiro";
         }
+
+        // 4. BUSCA CONTATOS
+        await GoogleAPI.fetchContacts();
     });
 
     btnLogout.addEventListener('click', () => location.reload());
 
+    // --- AUTOCOMPLETE ---
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -36,10 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = e.target.value.toLowerCase();
         if (q.length < 2) { autocompleteList.classList.add('hidden'); return; }
         const results = [];
-        GoogleAPI.contacts.forEach(c => {
-            const match = c.name.toLowerCase().includes(q) || c.phones.some(p => p.includes(q));
-            if (match) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
-        });
+        if (GoogleAPI.contacts) {
+            GoogleAPI.contacts.forEach(c => {
+                const match = c.name.toLowerCase().includes(q) || (c.phones && c.phones.some(p => p.includes(q)));
+                if (match) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
+            });
+        }
         if (results.length > 0) {
             autocompleteList.innerHTML = results.slice(0, 5).map(r => `
                 <li data-name="${r.name}" data-phone="${r.phone}"><strong>${r.name}</strong><br>${r.phone}</li>
@@ -58,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- AÇÃO DE AGENDAR ---
     document.getElementById('btn-schedule').addEventListener('click', async () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
@@ -65,26 +80,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const time = document.getElementById('schedule-time').value;
         const duration = document.getElementById('schedule-duration').value;
 
-        if (!name || !date || !time) { Utils.showToast("Preencha tudo!"); return; }
-
-        const start = Utils.toISOWithOffset(date, time);
-        const end = Utils.toISOWithOffset(date, Utils.calculateEndTime(time, duration));
-
-        const event = {
-            summary: `Corte: ${name}`,
-            description: `Tel: ${phone}`,
-            start: { dateTime: start, timeZone: 'America/Sao_Paulo' },
-            end: { dateTime: end, timeZone: 'America/Sao_Paulo' }
-        };
+        if (!name || !date || !time) {
+            Utils.showToast("Preencha todos os campos!");
+            return;
+        }
 
         try {
+            const start = Utils.toISOWithOffset(date, time);
+            const end = Utils.toISOWithOffset(date, Utils.calculateEndTime(time, duration));
+
+            const event = {
+                summary: `Corte: ${name}`,
+                description: `Tel: ${phone}`,
+                start: { dateTime: start, timeZone: 'America/Sao_Paulo' },
+                end: { dateTime: end, timeZone: 'America/Sao_Paulo' }
+            };
+
             await GoogleAPI.createEvent(event);
             Utils.showToast("Agendado!");
+
             setTimeout(() => {
                 const dataFormatada = date.split('-').reverse().join('/');
+                // MENSAGEM CORRIGIDA COM O NOME VARIÁVEL
                 const msg = encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dataFormatada} às ${time}. Tamo junto!`);
                 window.open(`https://wa.me/55${Utils.normalizePhone(phone)}?text=${msg}`, '_blank');
             }, 1500);
-        } catch (err) { Utils.showToast("Erro na agenda."); }
+        } catch (err) {
+            Utils.showToast("Erro ao agendar.");
+        }
     });
 });
