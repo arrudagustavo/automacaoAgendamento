@@ -81,9 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await GoogleAPI.createEvent(event);
             Utils.showToast("Agendado!");
             setTimeout(() => {
-                // FRASE ATUALIZADA AQUI:
                 const dataFormatada = date.split('-').reverse().join('/');
-                const msg = encodeURIComponent(`Fala Pai! Seu horário está confirmado para o dia ${dataFormatada} às ${time}. Tamo junto!`);
+                // AQUI ESTÁ A CORREÇÃO: Usando a variável ${name}
+                const msg = encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dataFormatada} às ${time}. Tamo junto!`);
                 window.open(`https://wa.me/55${Utils.normalizePhone(phone)}?text=${msg}`, '_blank');
             }, 1500);
         } catch (err) { Utils.showToast("Erro na agenda."); }
