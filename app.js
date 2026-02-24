@@ -3,35 +3,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginSection = document.getElementById('login-section');
     const schedulingSection = document.getElementById('scheduling-section');
     const btnAuth = document.getElementById('btn-auth-manual');
-    const btnLogout = document.getElementById('btn-logout');
     const btnSchedule = document.getElementById('btn-schedule');
     const modalSuccess = document.getElementById('modal-success');
-    const btnOpenZap = document.getElementById('btn-open-whatsapp');
-    const btnCloseSuccess = document.getElementById('btn-success-close');
 
-    // Inicializa Google API
     if (typeof GoogleAPI !== 'undefined') {
         GoogleAPI.init();
     }
 
-    // Clique no botão de login
-    btnAuth.addEventListener('click', () => {
+    // Clique blindado para Safari
+    btnAuth.addEventListener('click', (e) => {
+        e.preventDefault();
         console.log("Iniciando login...");
         GoogleAPI.requestToken();
     });
 
-    // Escuta sucesso do login
     document.addEventListener('google-auth-success', async () => {
-        console.log("Login OK!");
+        console.log("Login Detectado!");
         loginSection.classList.remove('active');
         schedulingSection.classList.add('active');
 
-        // Preenche Sysdate
         const agora = new Date();
-        const dataHoje = agora.toISOString().split('T')[0];
-        const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
-        document.getElementById('schedule-date').value = dataHoje;
-        document.getElementById('schedule-time').value = horaAgora;
+        document.getElementById('schedule-date').value = agora.toISOString().split('T')[0];
+        document.getElementById('schedule-time').value = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
 
         try {
             const user = await GoogleAPI.getProfile();
@@ -42,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await GoogleAPI.fetchContacts();
     });
 
-    btnLogout.addEventListener('click', () => location.reload());
+    document.getElementById('btn-logout').addEventListener('click', () => location.reload());
 
     // Autocomplete
     const clientSearch = document.getElementById('client-search');
@@ -76,13 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Ação de Agendar
-    btnSchedule.addEventListener('click', async () => {
+    // Agendar
+    btnSchedule.addEventListener('click', async (e) => {
+        e.preventDefault();
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
         const date = document.getElementById('schedule-date').value;
         const time = document.getElementById('schedule-time').value;
-        const duration = document.getElementById('schedule-duration').value;
 
         if (!name || !date || !time) {
             Utils.showToast("Preencha todos os campos!");
@@ -91,23 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const start = Utils.toISOWithOffset(date, time);
-            const end = Utils.toISOWithOffset(date, Utils.calculateEndTime(time, duration));
+            const end = Utils.toISOWithOffset(date, Utils.calculateEndTime(time, document.getElementById('schedule-duration').value));
 
-            const event = {
+            await GoogleAPI.createEvent({
                 summary: `Corte: ${name}`,
                 description: `Tel: ${phone}`,
                 start: { dateTime: start, timeZone: 'America/Sao_Paulo' },
                 end: { dateTime: end, timeZone: 'America/Sao_Paulo' }
-            };
+            });
 
-            await GoogleAPI.createEvent(event);
-
-            // Prepara link WhatsApp
             const dataF = date.split('-').reverse().join('/');
             const msg = `Fala ${name}! Seu horário está confirmado para o dia ${dataF} às ${time}. Tamo junto!`;
             urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(msg)}`;
 
-            // Mostra Modal
             modalSuccess.classList.remove('hidden');
 
         } catch (err) {
@@ -115,11 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    btnOpenZap.addEventListener('click', () => {
+    document.getElementById('btn-open-whatsapp').addEventListener('click', () => {
         window.location.href = urlWhatsAppFinal;
     });
 
-    btnCloseSuccess.addEventListener('click', () => {
+    document.getElementById('btn-success-close').addEventListener('click', () => {
         location.reload();
     });
 });
