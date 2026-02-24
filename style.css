@@ -3,7 +3,6 @@
     --card-bg: rgba(18, 18, 18, 0.8);
     --gold: #C6A85B;
     --text-white: #FFFFFF;
-    --text-gray: #B3B3B3;
     --border: #222222;
 }
 
@@ -15,11 +14,11 @@
 }
 
 body {
-    background-color: var(--bg-main);
+    background: var(--bg-main);
     color: var(--text-white);
     font-family: 'Inter', sans-serif;
-    height: 100vh;
     overflow: hidden;
+    height: 100vh;
 }
 
 .app-container {
@@ -42,7 +41,6 @@ body {
     display: flex !important;
 }
 
-/* MARCA D'ÁGUA FUNDO */
 .watermark-bg {
     position: absolute;
     top: 50%;
@@ -56,7 +54,6 @@ body {
     pointer-events: none;
 }
 
-/* LOGIN */
 .hero {
     flex: 1;
     display: flex;
@@ -69,7 +66,6 @@ body {
 .main-logo-login {
     width: 280px;
     margin-bottom: 20px;
-    filter: drop-shadow(0 0 15px rgba(198, 168, 91, 0.2));
 }
 
 .brand-title {
@@ -78,18 +74,17 @@ body {
     color: var(--gold);
 }
 
-.brand-subtitle {
-    color: var(--text-gray);
-    font-size: 14px;
-}
-
-/* AJUSTE DO BOTÃO GOOGLE (SUBINDO 2 DEDOS) */
+/* Ajuste de 2 dedos acima da borda */
 .login-controls {
     padding: 0 24px 80px 24px;
-    /* Aumentamos o padding inferior para 80px */
 }
 
-/* INPUT CARDS */
+.premium-footer {
+    padding: 20px 20px 80px 20px;
+    z-index: 10;
+    background: linear-gradient(to top, #000 80%, transparent);
+}
+
 .premium-form {
     flex: 1;
     padding: 20px;
@@ -130,14 +125,6 @@ body {
 select option {
     background: #1A1A1A;
     color: #FFF;
-}
-
-/* AJUSTE DO BOTÃO AGENDAR (SUBINDO 2 DEDOS) */
-.premium-footer {
-    padding: 20px 20px 80px 20px;
-    /* Subimos o botão Agendar também para manter o padrão */
-    z-index: 10;
-    background: linear-gradient(to top, #000 80%, transparent);
 }
 
 .premium-header {

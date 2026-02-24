@@ -16,7 +16,6 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -26,7 +25,7 @@
 
         <section id="login-section" class="section active">
             <div class="hero">
-                <img src="LogoVitao.png" alt="Logo Vitão Barbearia" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo Vitão" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
                 <p class="brand-subtitle">Gestão inteligente de agendamentos</p>
             </div>
@@ -40,12 +39,9 @@
 
         <section id="scheduling-section" class="section">
             <div class="watermark-bg"></div>
-
             <header class="premium-header">
                 <img src="LogoVitao.png" alt="Logo" class="mini-logo">
-                <div class="user-info">
-                    <span id="user-name">Carregando...</span>
-                </div>
+                <div class="user-info"><span id="user-name">Carregando...</span></div>
                 <button id="btn-logout" class="btn-logout">Sair</button>
             </header>
 
@@ -57,17 +53,14 @@
                         <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                     </div>
                 </div>
-
                 <div class="row grid-2">
                     <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
                     <div class="input-card"><label>TELEFONE</label><input type="tel" id="client-phone" readonly></div>
                 </div>
-
                 <div class="row grid-2">
                     <div class="input-card"><label>DATA</label><input type="date" id="schedule-date"></div>
                     <div class="input-card"><label>HORA</label><input type="time" id="schedule-time"></div>
                 </div>
-
                 <div class="input-card">
                     <label>DURAÇÃO DO SERVIÇO</label>
                     <select id="schedule-duration">
@@ -80,15 +73,12 @@
                 </div>
                 <div class="bottom-spacer"></div>
             </main>
-
             <footer class="premium-footer">
                 <button id="btn-schedule" class="btn-action-gold">Agendar</button>
             </footer>
         </section>
-
         <div id="toast" class="toast-premium hidden"></div>
     </div>
-
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
