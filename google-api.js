@@ -8,15 +8,11 @@ const GoogleAPI = {
             setTimeout(() => this.init(), 500);
             return;
         }
-
         this.tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: '602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com',
             scope: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/contacts.readonly',
             callback: (response) => {
-                if (response.error !== undefined) {
-                    console.error("Erro Google:", response.error);
-                    return;
-                }
+                if (response.error !== undefined) return;
                 this.accessToken = response.access_token;
                 document.dispatchEvent(new CustomEvent('google-auth-success'));
             },
@@ -24,12 +20,7 @@ const GoogleAPI = {
     },
 
     requestToken() {
-        if (!this.tokenClient) {
-            this.init();
-            setTimeout(() => this.tokenClient.requestAccessToken({ prompt: 'consent' }), 600);
-        } else {
-            this.tokenClient.requestAccessToken({ prompt: 'consent' });
-        }
+        this.tokenClient.requestAccessToken({ prompt: 'consent' });
     },
 
     async getProfile() {
@@ -40,16 +31,24 @@ const GoogleAPI = {
     },
 
     async fetchContacts() {
+        console.log("Buscando contatos...");
         try {
-            const res = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=100', {
+            // Buscamos nome e número de telefone de até 1000 conexões
+            const res = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=1000', {
                 headers: { 'Authorization': `Bearer ${this.accessToken}` }
             });
             const data = await res.json();
-            this.contacts = (data.connections || []).map(p => ({
-                name: p.names?.[0]?.displayName || 'Sem Nome',
-                phones: (p.phoneNumbers || []).map(n => n.value)
-            }));
-        } catch (e) { console.error("Erro contatos:", e); }
+
+            this.contacts = (data.connections || []).map(p => {
+                const name = p.names?.[0]?.displayName || 'Sem Nome';
+                const phones = (p.phoneNumbers || []).map(n => n.value);
+                return { name, phones };
+            }).filter(c => c.phones.length > 0); // Só salva quem tem telefone
+
+            console.log(`${this.contacts.length} contatos carregados.`);
+        } catch (e) {
+            console.error("Erro ao carregar contatos:", e);
+        }
     },
 
     async checkConflicts(min, max) {
