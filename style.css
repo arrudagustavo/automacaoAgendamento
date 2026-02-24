@@ -49,11 +49,9 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 130%;
-    /* Bem grande */
     height: auto;
     content: url('LogoVitao.png');
     opacity: 0.65;
-    /* Opacidade solicitada */
     z-index: 1;
     pointer-events: none;
 }
@@ -85,6 +83,12 @@ body {
     font-size: 14px;
 }
 
+/* AJUSTE DO BOTÃO GOOGLE (SUBINDO 2 DEDOS) */
+.login-controls {
+    padding: 0 24px 80px 24px;
+    /* Aumentamos o padding inferior para 80px */
+}
+
 /* INPUT CARDS */
 .premium-form {
     flex: 1;
@@ -102,7 +106,6 @@ body {
     border-radius: 12px;
     border: 1px solid var(--border);
     backdrop-filter: blur(8px);
-    /* Efeito fosco para ler sobre a marca d'água */
 }
 
 .input-card label {
@@ -129,7 +132,14 @@ select option {
     color: #FFF;
 }
 
-/* BOTÕES E FOOTER */
+/* AJUSTE DO BOTÃO AGENDAR (SUBINDO 2 DEDOS) */
+.premium-footer {
+    padding: 20px 20px 80px 20px;
+    /* Subimos o botão Agendar também para manter o padrão */
+    z-index: 10;
+    background: linear-gradient(to top, #000 80%, transparent);
+}
+
 .premium-header {
     padding: 15px 20px;
     display: flex;
@@ -156,12 +166,6 @@ select option {
     font-weight: 800;
     text-transform: uppercase;
     font-size: 16px;
-}
-
-.premium-footer {
-    padding: 20px 20px 45px;
-    z-index: 10;
-    background: linear-gradient(to top, #000 80%, transparent);
 }
 
 .btn-login-premium {
