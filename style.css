@@ -3,9 +3,7 @@
     --card-bg: #121212;
     --gold: #C6A85B;
     --text-white: #FFFFFF;
-    --text-gray: #B3B3B3;
     --border: #222222;
-    --transition: all 0.3s ease;
 }
 
 * {
@@ -16,51 +14,28 @@
 }
 
 body {
-    background-color: var(--bg-main);
+    background: var(--bg-main);
     color: var(--text-white);
     font-family: 'Inter', sans-serif;
-    height: 100vh;
     overflow: hidden;
-}
-
-.bg-texture {
-    position: fixed;
-    inset: 0;
-    background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
-    opacity: 0.08;
-    z-index: 0;
-    pointer-events: none;
+    height: 100vh;
 }
 
 .app-container {
-    position: relative;
-    z-index: 1;
     max-width: 440px;
     margin: 0 auto;
     height: 100vh;
-    display: flex;
-    flex-direction: column;
+    position: relative;
 }
 
 .section {
     display: none;
     height: 100%;
     flex-direction: column;
-    animation: fadeIn 0.6s ease;
 }
 
 .section.active {
-    display: flex;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+    display: flex !important;
 }
 
 /* LOGIN */
@@ -71,27 +46,19 @@ body {
     align-items: center;
     justify-content: center;
     padding: 40px;
+    text-align: center;
 }
 
 .main-logo-login {
     width: 280px;
     height: auto;
     margin-bottom: 20px;
-    filter: drop-shadow(0 0 20px rgba(198, 168, 91, 0.15));
 }
 
 .brand-title {
     font-family: 'Playfair Display', serif;
     font-size: 34px;
     color: var(--gold);
-    margin-bottom: 8px;
-    letter-spacing: 1px;
-}
-
-.brand-subtitle {
-    color: var(--text-gray);
-    font-size: 14px;
-    font-weight: 300;
 }
 
 .login-controls {
@@ -103,15 +70,14 @@ body {
     padding: 18px;
     border-radius: 50px;
     border: none;
-    background: #FFFFFF;
-    color: #000000;
+    background: #FFF;
+    color: #000;
     font-weight: 700;
     font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    cursor: pointer;
 }
 
 /* HEADER */
@@ -120,7 +86,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #000;
     border-bottom: 1px solid var(--border);
 }
 
@@ -130,36 +95,21 @@ body {
     object-fit: contain;
 }
 
-.user-info {
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.btn-logout {
-    background: transparent;
-    border: none;
-    color: var(--gold);
-    font-size: 12px;
-    font-weight: 700;
-}
-
-/* FORMULÁRIO */
+/* FORM */
 .premium-form {
     flex: 1;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 15px;
     overflow-y: auto;
 }
 
 .input-card {
     background: var(--card-bg);
-    padding: 14px 18px;
+    padding: 12px 15px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    position: relative;
 }
 
 .input-card label {
@@ -167,29 +117,11 @@ body {
     font-size: 10px;
     font-weight: 800;
     color: var(--gold);
-    letter-spacing: 1.5px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
 }
 
-/* Ajuste do Select (Duração) para aparecer no fundo escuro */
+.input-card input,
 .input-card select {
-    width: 100%;
-    background: var(--card-bg);
-    border: none;
-    color: #FFF;
-    font-size: 16px;
-    outline: none;
-    appearance: none;
-    /* Remove seta padrão em alguns sistemas */
-}
-
-/* Força as opções do select a ficarem legíveis no mobile/desktop */
-.input-card select option {
-    background-color: #1A1A1A;
-    color: #FFFFFF;
-}
-
-.input-card input {
     width: 100%;
     background: transparent;
     border: none;
@@ -198,74 +130,43 @@ body {
     outline: none;
 }
 
-.grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+/* LISTAS SELECT (CONVERSE) */
+select option {
+    background: #121212;
+    color: #FFF;
 }
 
-/* BOTÃO FINAL */
-.premium-footer {
-    padding: 20px 20px 45px;
-    background: linear-gradient(to top, #000 80%, transparent);
+/* AUTOCOMPLETE LIST */
+.autocomplete-list {
+    background: #1A1A1A;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    margin-top: 10px;
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.autocomplete-list li {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+    color: #FFF;
 }
 
 .btn-action-gold {
     width: 100%;
     padding: 20px;
-    border-radius: 14px;
+    border-radius: 12px;
     border: none;
     background: var(--gold);
     color: #000;
     font-weight: 800;
-    font-size: 16px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
 }
 
-/* AUTOCOMPLETE - AJUSTE DE CONTRASTE */
-.autocomplete-list {
-    position: absolute;
-    left: 0;
-    right: 0;
-    background: #1A1A1A;
-    border-radius: 8px;
-    margin-top: 15px;
-    z-index: 100;
-    border: 1px solid var(--gold);
-    max-height: 200px;
-    overflow-y: auto;
-    list-style: none;
-}
-
-/* Itens da lista de autocomplete */
-.autocomplete-list li {
-    padding: 12px;
-    border-bottom: 1px solid #2A2A2A;
-    color: #FFFFFF;
-    /* Texto branco */
+.premium-footer {
+    padding: 20px;
 }
 
 .hidden {
     display: none !important;
-}
-
-.bottom-spacer {
-    height: 60px;
-}
-
-/* TOAST */
-.toast-premium {
-    position: fixed;
-    top: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gold);
-    color: #000;
-    padding: 12px 25px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 700;
-    z-index: 1000;
 }
