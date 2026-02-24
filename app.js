@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Estado e Elementos ---
     let currentUser = null;
 
     const sections = {
@@ -27,24 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const autocompleteList = document.getElementById('autocomplete-list');
     const modalConflict = document.getElementById('modal-conflict');
 
-    // --- Inicialização ---
+    // Inicializa a API
     GoogleAPI.init();
+
+    // Configura valores padrão de data/hora
     inputs.date.value = Utils.getTodayDate();
     inputs.time.value = Utils.getCurrentTime();
 
-    // --- Fluxo de Autenticação ---
-    // O botão manual chama o pedido de token do Google
-    buttons.authManual.addEventListener('click', () => {
-        console.log("Iniciando pedido de Token...");
-        GoogleAPI.requestToken();
-    });
-
-    // Este evento é disparado pelo google-api.js quando o login tem sucesso
-    document.addEventListener('google-auth-success', async () => {
-        console.log("Auth Sucesso! Carregando perfil...");
+    // FUNÇÃO PRINCIPAL: Faz a troca de tela
+    async function loginSuccessFlow() {
+        console.log("Iniciando fluxo de transição de tela...");
         currentUser = await GoogleAPI.getProfile();
 
         if (currentUser) {
+            console.log("Usuário identificado:", currentUser.name);
             document.getElementById('user-name').textContent = currentUser.name;
             const avatar = document.getElementById('user-avatar');
             if (currentUser.picture) {
@@ -52,15 +47,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatar.classList.remove('hidden');
             }
 
-            // Troca de tela: Remove login e mostra agendamento
+            // A MUDANÇA DE TELA ACONTECE AQUI
             sections.login.classList.remove('active');
             sections.scheduling.classList.add('active');
+            console.log("Tela alterada para Agendamento.");
 
             Utils.showToast(`Bem-vindo, ${currentUser.given_name}!`);
-
-            // Carrega contatos em segundo plano
             await GoogleAPI.fetchContacts();
+        } else {
+            console.error("Falha ao obter perfil do usuário após login.");
+            Utils.showToast("Erro ao carregar perfil.");
         }
+    }
+
+    // Escuta o evento vindo do google-api.js
+    document.addEventListener('google-auth-success', () => {
+        console.log("Evento 'google-auth-success' recebido.");
+        loginSuccessFlow();
+    });
+
+    // Botão de entrar
+    buttons.authManual.addEventListener('click', () => {
+        console.log("Botão de login clicado.");
+        GoogleAPI.requestToken();
     });
 
     buttons.logout.addEventListener('click', () => {
@@ -125,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const endTime = Utils.calculateEndTime(time, inputs.duration.value);
         const endISO = Utils.toISOWithOffset(date, endTime);
 
-        // Verificação de conflitos
         Utils.showToast('Verificando agenda...', 1000);
         const hasConflict = await GoogleAPI.checkConflicts(new Date(startISO).toISOString(), new Date(endISO).toISOString());
 
@@ -139,9 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function createEvent(name, phone, startISO, endISO) {
         const cleanedPhone = Utils.normalizePhone(phone);
-
         const event = {
-            // Título formatado exatamente para o seu Apps Script: Corte - Nome - Telefone
             summary: `Corte - ${name} - ${cleanedPhone}`,
             start: { dateTime: startISO, timeZone: 'America/Sao_Paulo' },
             end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
@@ -151,17 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
             await GoogleAPI.createEvent(event);
             Utils.showToast('Agendado! Abrindo WhatsApp...');
 
-            // --- Automação WhatsApp (Confirmação Imediata) ---
             const dataFmt = new Date(startISO).toLocaleDateString('pt-BR');
             const horaFmt = new Date(startISO).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const mensagem = encodeURIComponent(`Olá ${name}, confirmo seu horário dia ${dataFmt} às ${horaFmt}. Até lá! ✂️`);
 
-            // O Apps Script fará o lembrete automático depois.
             setTimeout(() => {
                 window.open(`https://wa.me/55${cleanedPhone}?text=${mensagem}`, '_blank');
             }, 1500);
 
-            // Limpa o formulário
             inputs.clientName.value = '';
             inputs.clientPhone.value = '';
             inputs.clientSearch.value = '';
@@ -175,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     buttons.conflictConfirm.addEventListener('click', () => {
         modalConflict.classList.add('hidden');
-        // Força o agendamento mesmo com conflito
         const startISO = Utils.toISOWithOffset(inputs.date.value, inputs.time.value);
         const endTime = Utils.calculateEndTime(inputs.time.value, inputs.duration.value);
         const endISO = Utils.toISOWithOffset(inputs.date.value, endTime);
@@ -184,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     buttons.conflictCancel.addEventListener('click', () => modalConflict.classList.add('hidden'));
 
-    // Fechar autocomplete ao clicar fora
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete-wrapper')) {
             autocompleteList.classList.add('hidden');
