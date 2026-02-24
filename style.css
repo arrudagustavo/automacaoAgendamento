@@ -19,13 +19,15 @@ body {
     font-family: 'Inter', sans-serif;
     overflow: hidden;
     height: 100vh;
+    position: fixed;
+    width: 100%;
 }
 
 .app-container {
     position: relative;
     max-width: 440px;
     margin: 0 auto;
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -46,7 +48,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 130%;
+    width: 110%;
     height: auto;
     content: url('LogoVitao.png');
     opacity: 0.65;
@@ -54,49 +56,60 @@ body {
     pointer-events: none;
 }
 
+/* LOGIN AJUSTADO */
 .hero {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 20px;
 }
 
 .main-logo-login {
-    width: 280px;
-    margin-bottom: 20px;
+    width: 220px;
+    height: auto;
+    margin-bottom: 15px;
 }
 
+/* Reduzi a logo para subir o botão */
 .brand-title {
     font-family: 'Playfair Display', serif;
-    font-size: 34px;
+    font-size: 28px;
     color: var(--gold);
 }
 
+.brand-subtitle {
+    color: #B3B3B3;
+    font-size: 13px;
+}
+
+/* POSICIONAMENTO DOS BOTÕES - SUBINDO MAIS */
 .login-controls {
-    padding: 0 24px 80px 24px;
+    padding: 0 24px 120px 24px;
 }
 
+/* Aumentei o espaço inferior para o botão subir */
 .premium-footer {
-    padding: 20px 20px 80px 20px;
+    padding: 10px 20px 110px 20px;
     z-index: 10;
-    background: linear-gradient(to top, #000 80%, transparent);
+    background: linear-gradient(to top, #000 70%, transparent);
 }
 
+/* FORMULÁRIO COMPACTO */
 .premium-form {
     flex: 1;
-    padding: 20px;
+    padding: 10px 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     overflow-y: auto;
     z-index: 3;
 }
 
 .input-card {
     background: var(--card-bg);
-    padding: 14px 18px;
+    padding: 10px 15px;
     border-radius: 12px;
     border: 1px solid var(--border);
     backdrop-filter: blur(8px);
@@ -104,10 +117,10 @@ body {
 
 .input-card label {
     display: block;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: var(--gold);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     text-transform: uppercase;
 }
 
@@ -117,17 +130,12 @@ body {
     background: transparent;
     border: none;
     color: #FFF;
-    font-size: 16px;
+    font-size: 15px;
     outline: none;
 }
 
-select option {
-    background: #1A1A1A;
-    color: #FFF;
-}
-
 .premium-header {
-    padding: 15px 20px;
+    padding: 10px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -137,26 +145,26 @@ select option {
 }
 
 .mini-logo {
-    width: 45px;
-    height: 45px;
+    width: 35px;
+    height: 35px;
     object-fit: contain;
 }
 
 .btn-action-gold {
     width: 100%;
-    padding: 20px;
-    border-radius: 14px;
+    padding: 16px;
+    border-radius: 12px;
     border: none;
     background: var(--gold);
     color: #000;
     font-weight: 800;
     text-transform: uppercase;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .btn-login-premium {
     width: 100%;
-    padding: 18px;
+    padding: 16px;
     border-radius: 50px;
     background: #FFF;
     color: #000;
@@ -164,36 +172,16 @@ select option {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     border: none;
-}
-
-.btn-logout {
-    background: transparent;
-    border: none;
-    color: var(--gold);
-    font-weight: 700;
 }
 
 .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
 }
 
 .hidden {
     display: none !important;
-}
-
-.toast-premium {
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gold);
-    color: #000;
-    padding: 12px 25px;
-    border-radius: 50px;
-    font-weight: 700;
-    z-index: 1000;
 }

@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
             Utils.showToast("Agendado!");
             setTimeout(() => {
                 const dataFormatada = date.split('-').reverse().join('/');
-                // AQUI ESTÁ A CORREÇÃO: Usando a variável ${name}
                 const msg = encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dataFormatada} às ${time}. Tamo junto!`);
                 window.open(`https://wa.me/55${Utils.normalizePhone(phone)}?text=${msg}`, '_blank');
             }, 1500);
