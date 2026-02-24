@@ -8,8 +8,7 @@
     <title>Vitão Booking</title>
 
     <link rel="apple-touch-icon" href="LogoVitao.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="LogoVitao.png">
-    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
+    <link rel="apple-touch-icon-precomposed" href="LogoVitao.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -26,7 +25,7 @@
 
         <section id="login-section" class="section active">
             <div class="hero">
-                <img src="LogoVitao.png" alt="Logo Vitão" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
                 <p class="brand-subtitle">Gestão inteligente de agendamentos</p>
             </div>
@@ -47,12 +46,9 @@
             </header>
 
             <main class="premium-form">
-                <div class="input-card">
-                    <label>BUSCAR CLIENTE</label>
-                    <div class="autocomplete-wrapper">
-                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
-                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
-                    </div>
+                <div class="input-card"><label>BUSCAR CLIENTE</label>
+                    <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
+                    <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                 </div>
                 <div class="row grid-2">
                     <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
@@ -63,13 +59,12 @@
                     <div class="input-card"><label>HORA</label><input type="time" id="schedule-time"></div>
                 </div>
                 <div class="input-card">
-                    <label>DURAÇÃO DO SERVIÇO</label>
+                    <label>DURAÇÃO</label>
                     <select id="schedule-duration">
-                        <option value="30">30 minutos</option>
-                        <option value="45">45 minutos</option>
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
                         <option value="60" selected>1 hora</option>
-                        <option value="90">1 hora e 30</option>
-                        <option value="105">1 hora e 45</option>
+                        <option value="90">1h 30</option>
                     </select>
                 </div>
             </main>
@@ -82,16 +77,15 @@
 
         <div id="modal-success" class="modal hidden">
             <div class="dark-card">
-                <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
-                <h3 style="color: var(--gold); margin-bottom: 10px;">Agendado!</h3>
-                <p style="font-size: 14px; margin-bottom: 20px; color: #fff;">O horário foi salvo e o WhatsApp será
-                    aberto.</p>
-                <button id="btn-success-close" class="btn-action-gold"
-                    style="padding: 12px; font-size: 14px;">OK</button>
+                <div style="font-size: 50px;">✅</div>
+                <h3 style="color: var(--gold); margin: 15px 0;">Agendado!</h3>
+                <button id="btn-open-whatsapp" class="btn-action-gold" style="margin-bottom: 10px;">Enviar
+                    WhatsApp</button>
+                <button id="btn-success-close"
+                    style="background:none; border:none; color:#aaa; font-size:12px; cursor:pointer;">Fechar</button>
             </div>
         </div>
     </div>
-
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
