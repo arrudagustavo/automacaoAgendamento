@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Barber Scheduler - Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <div id="app" class="app-container">
+        <!-- Login Section -->
+        <section id="login-section" class="section active">
+            <div class="hero">
+                <div class="logo-container">
+                    <div class="logo-icon">✂️</div>
+                    <h1>Barber Scheduler</h1>
+                </div>
+                <p>Agendamento rápido e inteligente</p>
+            </div>
+            <div class="login-controls">
+                <div id="g_id_onload"
+                    data-client_id="602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com"
+                    data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse"
+                    data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_black"
+                    data-text="signin_with" data-size="large" data-logo_alignment="left">
+                </div>
+                <button id="btn-auth-manual" class="btn-primary">Entrar com Google</button>
+            </div>
+        </section>
+
+        <!-- Scheduling Section -->
+        <section id="scheduling-section" class="section">
+            <header class="app-header">
+                <div class="user-info">
+                    <img id="user-avatar" src="" alt="Avatar" class="avatar hidden">
+                    <span id="user-name">Carregando...</span>
+                </div>
+                <button id="btn-logout" class="btn-text">Sair</button>
+            </header>
+
+            <main class="form-container">
+                <div class="input-group">
+                    <label for="client-search">Cliente</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="client-search" placeholder="Buscar contato..." autocomplete="off">
+                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label for="client-name">Nome</label>
+                        <input type="text" id="client-name" placeholder="Nome do cliente">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label for="client-phone">Telefone</label>
+                        <input type="tel" id="client-phone" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+
+                <div class="row grid-2">
+                    <div class="input-group">
+                        <label for="schedule-date">Data</label>
+                        <input type="date" id="schedule-date">
+                    </div>
+                    <div class="input-group">
+                        <label for="schedule-time">Hora</label>
+                        <input type="time" id="schedule-time">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="schedule-duration">Duração</label>
+                    <select id="schedule-duration">
+                        <option value="30">30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60" selected>60 minutos (1h)</option>
+                    </select>
+                </div>
+
+                <div class="spacer"></div>
+            </main>
+
+            <footer class="sticky-footer">
+                <button id="btn-schedule" class="btn-action">Agendar Agora</button>
+            </footer>
+        </section>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden"></div>
+
+        <!-- Conflict Modal -->
+        <div id="modal-conflict" class="modal hidden">
+            <div class="modal-content">
+                <h3>Conflito de Horário</h3>
+                <p>Já existe um agendamento para este horário. Deseja agendar mesmo assim?</p>
+                <div class="modal-actions">
+                    <button id="btn-conflict-cancel" class="btn-secondary">Voltar</button>
+                    <button id="btn-conflict-confirm" class="btn-danger">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="google-api.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

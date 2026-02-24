@@ -1,0 +1,309 @@
+:root {
+    --primary-color: #000000;
+    --accent-color: #D4AF37;
+    /* Metallic Gold */
+    --bg-color: #F8F9FA;
+    --card-bg: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #666666;
+    --error-color: #FF3B30;
+    --success-color: #34C759;
+    --border-radius: 16px;
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 20px;
+    --spacing-lg: 32px;
+    --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    max-width: 430px;
+    margin: 0 auto;
+    height: 100dvh;
+    /* Otimizado para iPhone 15 Pro Max */
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.section {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+}
+
+.section.active {
+    display: flex;
+}
+
+/* Hero / Login */
+.hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.logo-icon {
+    font-size: 64px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.hero h1 {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.hero p {
+    color: var(--text-secondary);
+    font-size: 18px;
+}
+
+.login-controls {
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding-bottom: calc(var(--spacing-lg) + var(--safe-area-bottom));
+}
+
+/* Header */
+.app-header {
+    padding: var(--spacing-md);
+    padding-top: calc(var(--spacing-md) + env(safe-area-inset-top));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Form */
+.form-container {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-left: 4px;
+}
+
+input,
+select {
+    width: 100%;
+    height: 56px;
+    padding: 0 var(--spacing-md);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius);
+    background: var(--card-bg);
+    font-size: 18px;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+/* Autocomplete */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.autocomplete-list li {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.autocomplete-list li .name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.autocomplete-list li .phone {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.autocomplete-list li:active {
+    background: #f0f0f0;
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    height: 56px;
+    border: none;
+    border-radius: 28px;
+    font-size: 18px;
+    font-weight: 600;
+    width: 100%;
+}
+
+.btn-action {
+    background: var(--primary-color);
+    color: white;
+    height: 64px;
+    border: none;
+    border-radius: 32px;
+    font-size: 18px;
+    font-weight: 600;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.sticky-footer {
+    padding: var(--spacing-md);
+    padding-bottom: calc(var(--spacing-md) + var(--safe-area-bottom));
+    background: linear-gradient(to top, var(--bg-color) 80%, transparent);
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    right: var(--spacing-md);
+    background: #333;
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    text-align: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    z-index: 2000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: var(--spacing-lg);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 360px;
+}
+
+.modal-actions {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.modal-actions button {
+    flex: 1;
+    height: 48px;
+    border-radius: 24px;
+    font-weight: 600;
+    border: none;
+}
+
+.btn-secondary {
+    background: #eee;
+}
+
+.btn-danger {
+    background: var(--error-color);
+    color: white;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.spacer {
+    height: 100px;
+}
