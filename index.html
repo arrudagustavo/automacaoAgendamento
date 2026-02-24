@@ -5,78 +5,93 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Barber Scheduler - Pro</title>
+    <title>Vitão Booking</title>
+
+    <link rel="apple-touch-icon" href="LogoVitao.jpg">
+    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
     <div id="app" class="app-container">
+        <div class="bg-texture"></div>
+
         <section id="login-section" class="section active">
             <div class="hero">
-                <div class="logo-icon">✂️</div>
-                <h1>Barber Scheduler</h1>
-                <p>Agendamento rápido e inteligente</p>
+                <img src="LogoVitao.jpg" alt="Vitão Barbearia Logo" class="main-logo-login">
+                <h1 class="brand-title">Vitão Booking</h1>
+                <p class="brand-subtitle">Gestão inteligente de agendamentos</p>
             </div>
             <div class="login-controls">
-                <button id="btn-auth-manual" class="btn-primary">Entrar com Google</button>
+                <button id="btn-auth-manual" class="btn-login-premium">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="GoogleIcon"
+                        width="20">
+                    Entrar com Google
+                </button>
             </div>
         </section>
 
         <section id="scheduling-section" class="section">
-            <header class="app-header">
+            <header class="premium-header">
+                <img src="LogoVitao.jpg" alt="Logo" class="mini-logo">
                 <div class="user-info">
-                    <img id="user-avatar" src="" alt="Avatar" class="avatar hidden">
                     <span id="user-name">Carregando...</span>
+                    <img id="user-avatar" src="" alt="User" class="avatar hidden">
                 </div>
-                <button id="btn-logout" class="btn-text">Sair</button>
+                <button id="btn-logout" class="btn-logout">Sair</button>
             </header>
 
-            <main class="form-container">
-                <div class="input-group">
-                    <label>Cliente</label>
+            <main class="premium-form">
+                <div class="input-card">
+                    <label>CLIENTE</label>
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="client-search" placeholder="Buscar contato..." autocomplete="off">
+                        <input type="text" id="client-search" placeholder="Buscar na agenda..." autocomplete="off">
                         <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                     </div>
                 </div>
 
-                <div class="input-group"><label>Nome</label><input type="text" id="client-name"></div>
-                <div class="input-group"><label>Telefone</label><input type="tel" id="client-phone"></div>
+                <div class="row grid-2">
+                    <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
+                    <div class="input-card"><label>TELEFONE</label><input type="tel" id="client-phone" readonly></div>
+                </div>
 
                 <div class="row grid-2">
-                    <div class="input-group"><label>Data</label><input type="date" id="schedule-date"></div>
-                    <div class="input-group"><label>Hora</label><input type="time" id="schedule-time"></div>
+                    <div class="input-card"><label>DATA</label><input type="date" id="schedule-date"></div>
+                    <div class="input-card"><label>HORA</label><input type="time" id="schedule-time"></div>
                 </div>
 
-                <div class="input-group">
-                    <label>Duração</label>
+                <div class="input-card">
+                    <label>SERVIÇO / DURAÇÃO</label>
                     <select id="schedule-duration">
-                        <option value="30">30 minutos</option>
-                        <option value="45">45 minutos</option>
-                        <option value="60" selected>1 hora</option>
+                        <option value="30">Corte Simples (30 min)</option>
+                        <option value="45">Corte + Barba (45 min)</option>
+                        <option value="60" selected>Combo Vitão Premium (1 hora)</option>
                     </select>
                 </div>
-                <div class="spacer"></div>
+                <div class="bottom-spacer"></div>
             </main>
 
-            <footer class="sticky-footer">
-                <button id="btn-schedule" class="btn-action">Agendar Agora</button>
+            <footer class="premium-footer">
+                <button id="btn-schedule" class="btn-action-gold">Agendar Agora</button>
             </footer>
         </section>
 
-        <div id="toast" class="toast hidden"></div>
-
+        <div id="toast" class="toast-premium hidden"></div>
         <div id="modal-conflict" class="modal hidden">
-            <div class="modal-content">
-                <h3>Conflito de Horário</h3>
-                <p>Já existe um agendamento para este horário. Deseja agendar mesmo assim?</p>
+            <div class="modal-content dark-card">
+                <h3>Atenção</h3>
+                <p>Já existe um atendimento neste horário. Deseja manter?</p>
                 <div class="modal-actions">
-                    <button id="btn-conflict-cancel" class="btn-secondary">Voltar</button>
-                    <button id="btn-conflict-confirm" class="btn-danger">Confirmar</button>
+                    <button id="btn-conflict-cancel" class="btn-outline">Voltar</button>
+                    <button id="btn-conflict-confirm" class="btn-gold-small">Confirmar</button>
                 </div>
             </div>
         </div>
