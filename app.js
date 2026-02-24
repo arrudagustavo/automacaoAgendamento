@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const schedulingSection = document.getElementById('scheduling-section');
     const btnAuth = document.getElementById('btn-auth-manual');
     const btnLogout = document.getElementById('btn-logout');
+    const modalSuccess = document.getElementById('modal-success');
 
     GoogleAPI.init();
 
@@ -10,15 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
         GoogleAPI.requestToken();
     });
 
-    // ESCUTA O SUCESSO DO LOGIN
     document.addEventListener('google-auth-success', async () => {
-        console.log("Login OK! Forçando troca de tela...");
-
-        // 1. TROCA A TELA IMEDIATAMENTE
         loginSection.classList.remove('active');
         schedulingSection.classList.add('active');
 
-        // 2. PREENCHE DATA E HORA (SYSDATE)
         const agora = new Date();
         const dataHoje = agora.toISOString().split('T')[0];
         const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
@@ -26,21 +22,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('schedule-date').value = dataHoje;
         document.getElementById('schedule-time').value = horaAgora;
 
-        // 3. CARREGA DADOS DO USUÁRIO EM SEGUNDO PLANO
         try {
             const user = await GoogleAPI.getProfile();
             document.getElementById('user-name').textContent = user ? user.name : "Barbeiro";
         } catch (e) {
             document.getElementById('user-name').textContent = "Barbeiro";
         }
-
-        // 4. BUSCA CONTATOS
         await GoogleAPI.fetchContacts();
     });
 
     btnLogout.addEventListener('click', () => location.reload());
 
-    // --- AUTOCOMPLETE ---
+    // AUTOCOMPLETE
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -72,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- AÇÃO DE AGENDAR ---
+    // AGENDAR
     document.getElementById('btn-schedule').addEventListener('click', async () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
@@ -97,16 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             await GoogleAPI.createEvent(event);
-            Utils.showToast("Agendado!");
 
-            setTimeout(() => {
-                const dataFormatada = date.split('-').reverse().join('/');
-                // MENSAGEM CORRIGIDA COM O NOME VARIÁVEL
-                const msg = encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dataFormatada} às ${time}. Tamo junto!`);
-                window.open(`https://wa.me/55${Utils.normalizePhone(phone)}?text=${msg}`, '_blank');
-            }, 1500);
+            // Sucesso!
+            const dataFormatada = date.split('-').reverse().join('/');
+            const msg = `Fala ${name}! Seu horário está confirmado para o dia ${dataFormatada} às ${time}. Tamo junto!`;
+
+            // REDIRECIONAMENTO DIRETO (EVITA BLOQUEIO SAFARI)
+            window.location.href = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(msg)}`;
+
         } catch (err) {
             Utils.showToast("Erro ao agendar.");
         }
+    });
+
+    document.getElementById('btn-success-close').addEventListener('click', () => {
+        location.reload();
     });
 });

@@ -8,6 +8,7 @@
     <title>Vitão Booking</title>
 
     <link rel="apple-touch-icon" href="LogoVitao.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="LogoVitao.png">
     <meta name="apple-mobile-web-app-title" content="Vitão Booking">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -76,8 +77,21 @@
                 <button id="btn-schedule" class="btn-action-gold">Agendar</button>
             </footer>
         </section>
+
         <div id="toast" class="toast-premium hidden"></div>
+
+        <div id="modal-success" class="modal hidden">
+            <div class="dark-card">
+                <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
+                <h3 style="color: var(--gold); margin-bottom: 10px;">Agendado!</h3>
+                <p style="font-size: 14px; margin-bottom: 20px; color: #fff;">O horário foi salvo e o WhatsApp será
+                    aberto.</p>
+                <button id="btn-success-close" class="btn-action-gold"
+                    style="padding: 12px; font-size: 14px;">OK</button>
+            </div>
+        </div>
     </div>
+
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
