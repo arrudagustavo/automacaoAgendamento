@@ -4,33 +4,39 @@ const GoogleAPI = {
     contacts: [],
 
     init() {
-        // Inicializa o cliente de token de forma explícita
+        if (typeof google === 'undefined') {
+            setTimeout(() => this.init(), 500);
+            return;
+        }
+
         this.tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: '602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com',
             scope: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/contacts.readonly',
             callback: (response) => {
                 if (response.error !== undefined) {
-                    console.error("Erro no Google Auth:", response);
+                    console.error("Erro Google:", response.error);
                     return;
                 }
                 this.accessToken = response.access_token;
-                console.log("Token recebido com sucesso.");
-                // Dispara o evento que o app.js está ouvindo
                 document.dispatchEvent(new CustomEvent('google-auth-success'));
             },
         });
     },
 
     requestToken() {
-        // Solicita o token via popup, mas de forma manual para evitar bloqueios COOP automáticos
-        this.tokenClient.requestAccessToken({ prompt: 'consent' });
+        if (!this.tokenClient) {
+            this.init();
+            setTimeout(() => this.tokenClient.requestAccessToken({ prompt: 'consent' }), 600);
+        } else {
+            this.tokenClient.requestAccessToken({ prompt: 'consent' });
+        }
     },
 
     async getProfile() {
         const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
             headers: { 'Authorization': `Bearer ${this.accessToken}` }
         });
-        return res.json();
+        return await res.json();
     },
 
     async fetchContacts() {
@@ -43,7 +49,7 @@ const GoogleAPI = {
                 name: p.names?.[0]?.displayName || 'Sem Nome',
                 phones: (p.phoneNumbers || []).map(n => n.value)
             }));
-        } catch (e) { console.error("Erro ao buscar contatos:", e); }
+        } catch (e) { console.error("Erro contatos:", e); }
     },
 
     async checkConflicts(min, max) {

@@ -7,6 +7,8 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Barber Scheduler - Pro</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -32,30 +34,35 @@
                 </div>
                 <button id="btn-logout" class="btn-text">Sair</button>
             </header>
+
             <main class="form-container">
                 <div class="input-group">
-                    <label>Buscar Cliente</label>
+                    <label>Cliente</label>
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
+                        <input type="text" id="client-search" placeholder="Buscar contato..." autocomplete="off">
                         <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                     </div>
                 </div>
+
                 <div class="input-group"><label>Nome</label><input type="text" id="client-name"></div>
                 <div class="input-group"><label>Telefone</label><input type="tel" id="client-phone"></div>
+
                 <div class="row grid-2">
                     <div class="input-group"><label>Data</label><input type="date" id="schedule-date"></div>
                     <div class="input-group"><label>Hora</label><input type="time" id="schedule-time"></div>
                 </div>
+
                 <div class="input-group">
                     <label>Duração</label>
                     <select id="schedule-duration">
-                        <option value="30">30 min</option>
-                        <option value="45">45 min</option>
+                        <option value="30">30 minutos</option>
+                        <option value="45">45 minutos</option>
                         <option value="60" selected>1 hora</option>
                     </select>
                 </div>
                 <div class="spacer"></div>
             </main>
+
             <footer class="sticky-footer">
                 <button id="btn-schedule" class="btn-action">Agendar Agora</button>
             </footer>
@@ -65,15 +72,16 @@
 
         <div id="modal-conflict" class="modal hidden">
             <div class="modal-content">
-                <h3>Conflito!</h3>
-                <p>Já existe um agendamento. Confirmar mesmo assim?</p>
+                <h3>Conflito de Horário</h3>
+                <p>Já existe um agendamento para este horário. Deseja agendar mesmo assim?</p>
                 <div class="modal-actions">
                     <button id="btn-conflict-cancel" class="btn-secondary">Voltar</button>
-                    <button id="btn-conflict-confirm" class="btn-danger">Sim</button>
+                    <button id="btn-conflict-confirm" class="btn-danger">Confirmar</button>
                 </div>
             </div>
         </div>
     </div>
+
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
