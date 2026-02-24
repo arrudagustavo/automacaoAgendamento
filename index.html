@@ -9,6 +9,9 @@
 
     <link rel="apple-touch-icon" href="LogoVitao.png">
     <link rel="apple-touch-icon-precomposed" href="LogoVitao.png">
+    <link rel="icon" href="LogoVitao.png">
+
+    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -16,6 +19,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -25,7 +29,7 @@
 
         <section id="login-section" class="section active">
             <div class="hero">
-                <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo Vitão" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
                 <p class="brand-subtitle">Gestão inteligente de agendamentos</p>
             </div>
@@ -46,9 +50,12 @@
             </header>
 
             <main class="premium-form">
-                <div class="input-card"><label>BUSCAR CLIENTE</label>
-                    <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
-                    <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+                <div class="input-card">
+                    <label>BUSCAR CLIENTE</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
+                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+                    </div>
                 </div>
                 <div class="row grid-2">
                     <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
@@ -59,12 +66,13 @@
                     <div class="input-card"><label>HORA</label><input type="time" id="schedule-time"></div>
                 </div>
                 <div class="input-card">
-                    <label>DURAÇÃO</label>
+                    <label>DURAÇÃO DO SERVIÇO</label>
                     <select id="schedule-duration">
-                        <option value="30">30 min</option>
-                        <option value="45">45 min</option>
+                        <option value="30">30 minutos</option>
+                        <option value="45">45 minutos</option>
                         <option value="60" selected>1 hora</option>
-                        <option value="90">1h 30</option>
+                        <option value="90">1 hora e 30</option>
+                        <option value="105">1 hora e 45</option>
                     </select>
                 </div>
             </main>
@@ -86,6 +94,7 @@
             </div>
         </div>
     </div>
+
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
