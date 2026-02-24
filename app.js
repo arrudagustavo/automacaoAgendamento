@@ -3,44 +3,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginSection = document.getElementById('login-section');
     const schedulingSection = document.getElementById('scheduling-section');
     const btnAuth = document.getElementById('btn-auth-manual');
-    const btnSchedule = document.getElementById('btn-schedule');
     const modalSuccess = document.getElementById('modal-success');
 
-    if (typeof GoogleAPI !== 'undefined') {
-        GoogleAPI.init();
-    }
+    GoogleAPI.init();
 
-    // Clique blindado para Safari
-    btnAuth.addEventListener('click', (e) => {
-        e.preventDefault();
-        console.log("Iniciando login...");
-        GoogleAPI.requestToken();
-    });
-
-    document.addEventListener('google-auth-success', async () => {
-        console.log("Login Detectado!");
-        loginSection.classList.remove('active');
-        schedulingSection.classList.add('active');
-
+    const resetForm = () => {
+        document.getElementById('client-name').value = "";
+        document.getElementById('client-phone').value = "";
+        document.getElementById('client-search').value = "";
         const agora = new Date();
         document.getElementById('schedule-date').value = agora.toISOString().split('T')[0];
         document.getElementById('schedule-time').value = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
+    };
 
-        try {
-            const user = await GoogleAPI.getProfile();
-            document.getElementById('user-name').textContent = user ? user.name : "Barbeiro";
-        } catch (e) {
-            document.getElementById('user-name').textContent = "Barbeiro";
+    // PERSISTÊNCIA: Mantém logado ao voltar do Zap ou fechar app
+    const savedUser = localStorage.getItem('vitao_user');
+    if (savedUser) {
+        const user = JSON.parse(savedUser);
+        document.getElementById('user-name').textContent = user.name;
+        loginSection.classList.remove('active');
+        schedulingSection.classList.add('active');
+        resetForm();
+        GoogleAPI.fetchContacts();
+    }
+
+    btnAuth.addEventListener('click', () => GoogleAPI.requestToken());
+
+    document.addEventListener('google-auth-success', async () => {
+        const user = await GoogleAPI.getProfile();
+        if (user) {
+            localStorage.setItem('vitao_user', JSON.stringify(user));
+            document.getElementById('user-name').textContent = user.name;
         }
+        loginSection.classList.remove('active');
+        schedulingSection.classList.add('active');
+        resetForm();
         await GoogleAPI.fetchContacts();
     });
 
-    document.getElementById('btn-logout').addEventListener('click', () => location.reload());
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        localStorage.removeItem('vitao_user');
+        location.reload();
+    });
 
-    // Autocomplete
+    // AUTOCOMPLETE
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
-
     clientSearch.addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase();
         if (q.length < 2) { autocompleteList.classList.add('hidden'); return; }
@@ -69,39 +77,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Agendar
-    btnSchedule.addEventListener('click', async (e) => {
-        e.preventDefault();
+    // AGENDAR
+    document.getElementById('btn-schedule').addEventListener('click', async () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
         const date = document.getElementById('schedule-date').value;
         const time = document.getElementById('schedule-time').value;
 
-        if (!name || !date || !time) {
-            Utils.showToast("Preencha todos os campos!");
-            return;
-        }
+        if (!name || !date || !time) { Utils.showToast("Preencha tudo!"); return; }
 
         try {
-            const start = Utils.toISOWithOffset(date, time);
-            const end = Utils.toISOWithOffset(date, Utils.calculateEndTime(time, document.getElementById('schedule-duration').value));
-
             await GoogleAPI.createEvent({
                 summary: `Corte: ${name}`,
                 description: `Tel: ${phone}`,
-                start: { dateTime: start, timeZone: 'America/Sao_Paulo' },
-                end: { dateTime: end, timeZone: 'America/Sao_Paulo' }
+                start: { dateTime: Utils.toISOWithOffset(date, time), timeZone: 'America/Sao_Paulo' },
+                end: { dateTime: Utils.toISOWithOffset(date, Utils.calculateEndTime(time, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
             });
 
             const dataF = date.split('-').reverse().join('/');
             const msg = `Fala ${name}! Seu horário está confirmado para o dia ${dataF} às ${time}. Tamo junto!`;
             urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(msg)}`;
-
             modalSuccess.classList.remove('hidden');
-
-        } catch (err) {
-            Utils.showToast("Erro ao agendar.");
-        }
+        } catch (err) { Utils.showToast("Erro ao agendar."); }
     });
 
     document.getElementById('btn-open-whatsapp').addEventListener('click', () => {
@@ -109,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btn-success-close').addEventListener('click', () => {
-        location.reload();
+        modalSuccess.classList.add('hidden');
+        resetForm(); // Limpa dados sem deslogar
     });
 });

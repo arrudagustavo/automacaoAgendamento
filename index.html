@@ -7,18 +7,17 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vitão Booking</title>
 
-    <link rel="apple-touch-icon" href="LogoVitao.png">
-    <link rel="apple-touch-icon-precomposed" href="LogoVitao.png">
-    <link rel="icon" href="LogoVitao.png">
+    <link rel="apple-touch-icon" href="VitaoSolido.jpg">
+    <link rel="apple-touch-icon-precomposed" href="VitaoSolido.jpg">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -42,19 +41,20 @@
 
         <section id="scheduling-section" class="section">
             <div class="watermark-bg"></div>
+
             <header class="premium-header">
-                <img src="LogoVitao.png" alt="Logo" class="mini-logo">
-                <div class="user-info"><span id="user-name">Carregando...</span></div>
-                <button id="btn-logout" class="btn-logout">Sair</button>
+                <div class="header-content">
+                    <img src="LogoVitao.png" alt="Logo" class="mini-logo">
+                    <div class="user-info"><span id="user-name">Carregando...</span></div>
+                    <button id="btn-logout" class="btn-logout">Sair</button>
+                </div>
             </header>
 
             <main class="premium-form">
                 <div class="input-card">
                     <label>BUSCAR CLIENTE</label>
-                    <div class="autocomplete-wrapper">
-                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
-                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
-                    </div>
+                    <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
+                    <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                 </div>
                 <div class="row grid-2">
                     <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
@@ -75,6 +75,7 @@
                     </select>
                 </div>
             </main>
+
             <footer class="premium-footer">
                 <button id="btn-schedule" class="btn-action-gold">Agendar</button>
             </footer>
@@ -89,7 +90,7 @@
                 <button id="btn-open-whatsapp" class="btn-action-gold" style="margin-bottom: 10px;">Enviar
                     WhatsApp</button>
                 <button id="btn-success-close"
-                    style="background:none; border:none; color:#aaa; font-size:12px;">Fechar</button>
+                    style="background:none; border:none; color:#aaa; font-size:12px; cursor:pointer;">Fechar</button>
             </div>
         </div>
     </div>

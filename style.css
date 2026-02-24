@@ -18,7 +18,6 @@ body {
     color: var(--text-white);
     font-family: 'Inter', sans-serif;
     height: 100dvh;
-    /* Altura dinâmica para Safari */
     width: 100vw;
     overflow: hidden;
     position: fixed;
@@ -29,7 +28,6 @@ body {
     max-width: 440px;
     margin: 0 auto;
     height: 100%;
-    width: 100%;
 }
 
 .section {
@@ -37,8 +35,6 @@ body {
     height: 100%;
     width: 100%;
     flex-direction: column;
-    position: relative;
-    z-index: 2;
 }
 
 .section.active {
@@ -56,6 +52,32 @@ body {
     opacity: 0.65;
     z-index: 1;
     pointer-events: none;
+}
+
+/* RECUO PARA O RELÓGIO/BATERIA DO IPHONE */
+.premium-header {
+    padding-top: env(safe-area-inset-top, 44px);
+    background: #000;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+}
+
+/* BOTÕES NA MESMA POSIÇÃO DO SAFARI */
+.login-controls {
+    padding: 0 24px 140px 24px;
+}
+
+.premium-footer {
+    padding: 0 20px 140px 20px;
+    z-index: 10;
+    background: linear-gradient(to top, #000 85%, transparent);
 }
 
 .hero {
@@ -78,50 +100,9 @@ body {
     color: var(--gold);
 }
 
-/* AJUSTE: Subindo o botão do Google */
-.login-controls {
-    padding: 0 24px 140px 24px;
-    width: 100%;
-}
-
-.btn-login-premium {
-    width: 100%;
-    padding: 18px;
-    border-radius: 50px;
-    background: #FFF;
-    color: #000;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    border: none;
-    font-size: 16px;
-}
-
-/* AJUSTE: Subindo o botão Agendar */
-.premium-footer {
-    padding: 20px 20px 140px 20px;
-    z-index: 10;
-    background: linear-gradient(to top, #000 85%, transparent);
-    width: 100%;
-}
-
-.btn-action-gold {
-    width: 100%;
-    padding: 18px;
-    border-radius: 14px;
-    border: none;
-    background: var(--gold);
-    color: #000;
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: 16px;
-}
-
 .premium-form {
     flex: 1;
-    padding: 10px 20px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -156,15 +137,30 @@ body {
     outline: none;
 }
 
-.premium-header {
-    padding: 15px 20px;
+.btn-action-gold {
+    width: 100%;
+    padding: 18px;
+    border-radius: 14px;
+    border: none;
+    background: var(--gold);
+    color: #000;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+
+.btn-login-premium {
+    width: 100%;
+    padding: 18px;
+    border-radius: 50px;
+    background: #FFF;
+    color: #000;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    background: #000;
-    z-index: 10;
-    width: 100%;
+    justify-content: center;
+    gap: 12px;
+    border: none;
 }
 
 .mini-logo {
@@ -173,18 +169,39 @@ body {
     object-fit: contain;
 }
 
+.btn-logout {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 12px;
+}
+
 .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    width: 100%;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* MODAL */
+.autocomplete-list {
+    background: #1A1A1A;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    margin-top: 5px;
+    list-style: none;
+}
+
+.autocomplete-list li {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+    color: #FFF;
+    font-size: 14px;
+}
+
 .modal {
     position: fixed;
     inset: 0;
@@ -204,17 +221,4 @@ body {
     text-align: center;
     width: 100%;
     max-width: 320px;
-}
-
-.toast-premium {
-    position: fixed;
-    top: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gold);
-    color: #000;
-    padding: 12px 25px;
-    border-radius: 50px;
-    font-weight: 700;
-    z-index: 1000;
 }
