@@ -1,8 +1,9 @@
 :root {
     --bg-main: #000000;
-    --card-bg: #121212;
+    --card-bg: rgba(18, 18, 18, 0.8);
     --gold: #C6A85B;
     --text-white: #FFFFFF;
+    --text-gray: #B3B3B3;
     --border: #222222;
 }
 
@@ -14,28 +15,47 @@
 }
 
 body {
-    background: var(--bg-main);
+    background-color: var(--bg-main);
     color: var(--text-white);
     font-family: 'Inter', sans-serif;
-    overflow: hidden;
     height: 100vh;
+    overflow: hidden;
 }
 
 .app-container {
+    position: relative;
     max-width: 440px;
     margin: 0 auto;
     height: 100vh;
-    position: relative;
+    overflow: hidden;
 }
 
 .section {
     display: none;
     height: 100%;
     flex-direction: column;
+    position: relative;
+    z-index: 2;
 }
 
 .section.active {
     display: flex !important;
+}
+
+/* MARCA D'ÁGUA FUNDO */
+.watermark-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 130%;
+    /* Bem grande */
+    height: auto;
+    content: url('LogoVitao.png');
+    opacity: 0.65;
+    /* Opacidade solicitada */
+    z-index: 1;
+    pointer-events: none;
 }
 
 /* LOGIN */
@@ -46,13 +66,12 @@ body {
     align-items: center;
     justify-content: center;
     padding: 40px;
-    text-align: center;
 }
 
 .main-logo-login {
     width: 280px;
-    height: auto;
     margin-bottom: 20px;
+    filter: drop-shadow(0 0 15px rgba(198, 168, 91, 0.2));
 }
 
 .brand-title {
@@ -61,41 +80,12 @@ body {
     color: var(--gold);
 }
 
-.login-controls {
-    padding: 40px 24px;
+.brand-subtitle {
+    color: var(--text-gray);
+    font-size: 14px;
 }
 
-.btn-login-premium {
-    width: 100%;
-    padding: 18px;
-    border-radius: 50px;
-    border: none;
-    background: #FFF;
-    color: #000;
-    font-weight: 700;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-}
-
-/* HEADER */
-.premium-header {
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-}
-
-.mini-logo {
-    width: 45px;
-    height: 45px;
-    object-fit: contain;
-}
-
-/* FORM */
+/* INPUT CARDS */
 .premium-form {
     flex: 1;
     padding: 20px;
@@ -103,13 +93,16 @@ body {
     flex-direction: column;
     gap: 15px;
     overflow-y: auto;
+    z-index: 3;
 }
 
 .input-card {
     background: var(--card-bg);
-    padding: 12px 15px;
+    padding: 14px 18px;
     border-radius: 12px;
     border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    /* Efeito fosco para ler sobre a marca d'água */
 }
 
 .input-card label {
@@ -118,6 +111,7 @@ body {
     font-weight: 800;
     color: var(--gold);
     margin-bottom: 5px;
+    text-transform: uppercase;
 }
 
 .input-card input,
@@ -130,43 +124,86 @@ body {
     outline: none;
 }
 
-/* LISTAS SELECT (CONVERSE) */
 select option {
-    background: #121212;
-    color: #FFF;
-}
-
-/* AUTOCOMPLETE LIST */
-.autocomplete-list {
     background: #1A1A1A;
-    border: 1px solid var(--gold);
-    border-radius: 8px;
-    margin-top: 10px;
-    list-style: none;
-    max-height: 200px;
-    overflow-y: auto;
+    color: #FFF;
 }
 
-.autocomplete-list li {
-    padding: 12px;
-    border-bottom: 1px solid #333;
-    color: #FFF;
+/* BOTÕES E FOOTER */
+.premium-header {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: #000;
+    z-index: 10;
+}
+
+.mini-logo {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
 }
 
 .btn-action-gold {
     width: 100%;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 14px;
     border: none;
     background: var(--gold);
     color: #000;
     font-weight: 800;
+    text-transform: uppercase;
+    font-size: 16px;
 }
 
 .premium-footer {
-    padding: 20px;
+    padding: 20px 20px 45px;
+    z-index: 10;
+    background: linear-gradient(to top, #000 80%, transparent);
+}
+
+.btn-login-premium {
+    width: 100%;
+    padding: 18px;
+    border-radius: 50px;
+    background: #FFF;
+    color: #000;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+}
+
+.btn-logout {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .hidden {
     display: none !important;
+}
+
+.toast-premium {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #000;
+    padding: 12px 25px;
+    border-radius: 50px;
+    font-weight: 700;
+    z-index: 1000;
 }

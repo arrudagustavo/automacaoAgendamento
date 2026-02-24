@@ -4,25 +4,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAuth = document.getElementById('btn-auth-manual');
     const btnLogout = document.getElementById('btn-logout');
 
-    // Inicializa API
     GoogleAPI.init();
 
-    // Clique no botão de login
     btnAuth.addEventListener('click', () => {
         GoogleAPI.requestToken();
     });
 
-    // ESCUTA O SUCESSO DO LOGIN PARA MUDAR A TELA
     document.addEventListener('google-auth-success', async () => {
-        console.log("Login OK! Mudando tela...");
         const user = await GoogleAPI.getProfile();
 
         if (user) {
             document.getElementById('user-name').textContent = user.name;
 
-            // ESSE BLOCO MUDA A TELA
+            // Troca de Tela
             loginSection.classList.remove('active');
             schedulingSection.classList.add('active');
+
+            // --- SYSDATE: PREENCHE DATA E HORA ATUAIS ---
+            const agora = new Date();
+            const dataHoje = agora.toISOString().split('T')[0];
+            const horaAgora = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
+
+            document.getElementById('schedule-date').value = dataHoje;
+            document.getElementById('schedule-time').value = horaAgora;
+            // --------------------------------------------
 
             await GoogleAPI.fetchContacts();
         }
@@ -30,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnLogout.addEventListener('click', () => location.reload());
 
-    // Lógica de Busca (Autocomplete)
+    // Lógica Autocomplete
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -51,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </li>
             `).join('');
             autocompleteList.classList.remove('hidden');
+        } else {
+            autocompleteList.classList.add('hidden');
         }
     });
 
@@ -64,30 +71,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Agendamento
+    // Ação de Agendar
     document.getElementById('btn-schedule').addEventListener('click', async () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
-        if (!name) { Utils.showToast("Selecione um cliente"); return; }
+        const date = document.getElementById('schedule-date').value;
+        const time = document.getElementById('schedule-time').value;
+        const duration = document.getElementById('schedule-duration').value;
 
-        const start = Utils.toISOWithOffset(document.getElementById('schedule-date').value, document.getElementById('schedule-time').value);
-        const end = Utils.toISOWithOffset(document.getElementById('schedule-date').value, Utils.calculateEndTime(document.getElementById('schedule-time').value, document.getElementById('schedule-duration').value));
+        if (!name || !date || !time) { Utils.showToast("Preencha todos os campos"); return; }
+
+        const start = Utils.toISOWithOffset(date, time);
+        const end = Utils.toISOWithOffset(date, Utils.calculateEndTime(time, duration));
 
         const event = {
-            summary: `Corte - ${name} - ${Utils.normalizePhone(phone)}`,
+            summary: `Corte: ${name}`,
+            description: `Tel: ${phone}`,
             start: { dateTime: start, timeZone: 'America/Sao_Paulo' },
             end: { dateTime: end, timeZone: 'America/Sao_Paulo' }
         };
 
         try {
             await GoogleAPI.createEvent(event);
-            Utils.showToast("Agendado!");
+            Utils.showToast("Agendado com sucesso!");
+
+            // Abrir WhatsApp com confirmação
             setTimeout(() => {
-                const msg = encodeURIComponent(`Olá ${name}, seu horário foi agendado para ${document.getElementById('schedule-date').value} às ${document.getElementById('schedule-time').value}.`);
+                const msg = encodeURIComponent(`Fala ${name}! Seu horário na Vitão Barbearia está confirmado para o dia ${date.split('-').reverse().join('/')} às ${time}. Tamo junto!`);
                 window.open(`https://wa.me/55${Utils.normalizePhone(phone)}?text=${msg}`, '_blank');
-            }, 1000);
+            }, 1500);
         } catch (err) {
-            Utils.showToast("Erro ao agendar.");
+            Utils.showToast("Erro ao agendar na agenda.");
         }
     });
 });

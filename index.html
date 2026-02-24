@@ -6,13 +6,17 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vitão Booking</title>
+
     <link rel="apple-touch-icon" href="LogoVitao.png">
+    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -22,7 +26,7 @@
 
         <section id="login-section" class="section active">
             <div class="hero">
-                <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo Vitão Barbearia" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
                 <p class="brand-subtitle">Gestão inteligente de agendamentos</p>
             </div>
@@ -35,27 +39,35 @@
         </section>
 
         <section id="scheduling-section" class="section">
+            <div class="watermark-bg"></div>
+
             <header class="premium-header">
                 <img src="LogoVitao.png" alt="Logo" class="mini-logo">
-                <div class="user-info"><span id="user-name">Carregando...</span></div>
+                <div class="user-info">
+                    <span id="user-name">Carregando...</span>
+                </div>
                 <button id="btn-logout" class="btn-logout">Sair</button>
             </header>
+
             <main class="premium-form">
                 <div class="input-card">
                     <label>BUSCAR CLIENTE</label>
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="client-search" placeholder="Buscar na agenda..." autocomplete="off">
+                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
                         <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                     </div>
                 </div>
+
                 <div class="row grid-2">
                     <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
                     <div class="input-card"><label>TELEFONE</label><input type="tel" id="client-phone" readonly></div>
                 </div>
+
                 <div class="row grid-2">
                     <div class="input-card"><label>DATA</label><input type="date" id="schedule-date"></div>
                     <div class="input-card"><label>HORA</label><input type="time" id="schedule-time"></div>
                 </div>
+
                 <div class="input-card">
                     <label>DURAÇÃO DO SERVIÇO</label>
                     <select id="schedule-duration">
@@ -68,12 +80,15 @@
                 </div>
                 <div class="bottom-spacer"></div>
             </main>
+
             <footer class="premium-footer">
-                <button id="btn-schedule" class="btn-action-gold">Confirmar Agendamento</button>
+                <button id="btn-schedule" class="btn-action-gold">Agendar</button>
             </footer>
         </section>
+
         <div id="toast" class="toast-premium hidden"></div>
     </div>
+
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
