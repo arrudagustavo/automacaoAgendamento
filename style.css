@@ -1,12 +1,11 @@
 :root {
-    --bg-main: #0F0F0F;
-    --card-bg: #1A1A1A;
+    --bg-main: #000000;
+    --card-bg: #121212;
     --gold: #C6A85B;
-    --gold-hover: #E2C275;
-    --text-primary: #FFFFFF;
-    --text-secondary: #B3B3B3;
-    --input-border: #2A2A2A;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --text-white: #FFFFFF;
+    --text-gray: #B3B3B3;
+    --border: #222222;
+    --transition: all 0.3s ease;
 }
 
 * {
@@ -18,23 +17,19 @@
 
 body {
     background-color: var(--bg-main);
-    color: var(--text-primary);
+    color: var(--text-white);
     font-family: 'Inter', sans-serif;
-    overflow: hidden;
     height: 100vh;
+    overflow: hidden;
 }
 
-/* Textura de Fundo */
 .bg-texture {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
-    opacity: 0.05;
-    pointer-events: none;
+    opacity: 0.08;
     z-index: 0;
+    pointer-events: none;
 }
 
 .app-container {
@@ -47,12 +42,11 @@ body {
     flex-direction: column;
 }
 
-/* Telas e Animação */
 .section {
     display: none;
     height: 100%;
     flex-direction: column;
-    animation: fadeIn 0.5s ease forwards;
+    animation: fadeIn 0.6s ease;
 }
 
 .section.active {
@@ -62,12 +56,10 @@ body {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
@@ -76,29 +68,28 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     padding: 40px;
-    text-align: center;
 }
 
 .main-logo-login {
-    width: 220px;
+    width: 280px;
     height: auto;
-    object-fit: contain;
-    margin-bottom: 24px;
-    filter: drop-shadow(0 0 15px rgba(198, 168, 91, 0.2));
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(198, 168, 91, 0.15));
 }
 
 .brand-title {
     font-family: 'Playfair Display', serif;
-    font-size: 32px;
+    font-size: 34px;
+    color: var(--gold);
     margin-bottom: 8px;
     letter-spacing: 1px;
 }
 
 .brand-subtitle {
-    color: var(--text-secondary);
+    color: var(--text-gray);
     font-size: 14px;
     font-weight: 300;
 }
@@ -109,53 +100,40 @@ body {
 
 .btn-login-premium {
     width: 100%;
-    padding: 16px;
+    padding: 18px;
     border-radius: 50px;
     border: none;
     background: #FFFFFF;
-    color: #000;
-    font-weight: 600;
+    color: #000000;
+    font-weight: 700;
     font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    transition: var(--transition);
 }
 
 /* HEADER */
 .premium-header {
-    padding: 20px 24px;
+    padding: 15px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(26, 26, 26, 0.8);
-    backdrop-filter: blur(15px);
-    border-bottom: 1px solid var(--input-border);
+    background: #000;
+    border-bottom: 1px solid var(--border);
 }
 
 .mini-logo {
-    width: 42px;
-    height: 42px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 1.5px solid var(--gold);
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
 }
 
 .user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
+    color: white;
     font-weight: 600;
-}
-
-.avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    font-size: 14px;
 }
 
 .btn-logout {
@@ -163,51 +141,61 @@ body {
     border: none;
     color: var(--gold);
     font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
+    font-weight: 700;
 }
 
 /* FORMULÁRIO */
 .premium-form {
     flex: 1;
-    overflow-y: auto;
-    padding: 24px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding-bottom: 100px;
+    gap: 18px;
+    overflow-y: auto;
 }
 
 .input-card {
     background: var(--card-bg);
     padding: 14px 18px;
-    border-radius: 14px;
-    border: 1px solid var(--input-border);
-    transition: var(--transition);
-}
-
-.input-card:focus-within {
-    border-color: var(--gold);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    position: relative;
 }
 
 .input-card label {
     display: block;
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--gold);
     letter-spacing: 1.5px;
     margin-bottom: 6px;
 }
 
-.input-card input,
+/* Ajuste do Select (Duração) para aparecer no fundo escuro */
 .input-card select {
+    width: 100%;
+    background: var(--card-bg);
+    border: none;
+    color: #FFF;
+    font-size: 16px;
+    outline: none;
+    appearance: none;
+    /* Remove seta padrão em alguns sistemas */
+}
+
+/* Força as opções do select a ficarem legíveis no mobile/desktop */
+.input-card select option {
+    background-color: #1A1A1A;
+    color: #FFFFFF;
+}
+
+.input-card input {
     width: 100%;
     background: transparent;
     border: none;
     color: #FFF;
     font-size: 16px;
     outline: none;
-    font-family: 'Inter', sans-serif;
 }
 
 .grid-2 {
@@ -216,42 +204,32 @@ body {
     gap: 12px;
 }
 
-/* FOOTER FIXO */
+/* BOTÃO FINAL */
 .premium-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 20px 24px 40px 24px;
-    background: linear-gradient(to top, var(--bg-main) 70%, transparent);
+    padding: 20px 20px 45px;
+    background: linear-gradient(to top, #000 80%, transparent);
 }
 
 .btn-action-gold {
     width: 100%;
-    padding: 18px;
+    padding: 20px;
     border-radius: 14px;
     border: none;
     background: var(--gold);
     color: #000;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 8px 25px rgba(198, 168, 91, 0.3);
     cursor: pointer;
-    transition: var(--transition);
 }
 
-.btn-action-gold:active {
-    transform: scale(0.96);
-}
-
-/* AUTOCOMPLETE */
+/* AUTOCOMPLETE - AJUSTE DE CONTRASTE */
 .autocomplete-list {
     position: absolute;
     left: 0;
     right: 0;
-    background: #222;
+    background: #1A1A1A;
     border-radius: 8px;
     margin-top: 15px;
     z-index: 100;
@@ -261,57 +239,33 @@ body {
     list-style: none;
 }
 
-/* FEEDBACKS */
-.toast-premium {
-    position: fixed;
-    top: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gold);
-    color: #000;
-    padding: 12px 30px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 700;
-    z-index: 1000;
-}
-
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 2000;
-}
-
-.dark-card {
-    background: #1A1A1A;
-    border: 1px solid var(--gold);
-    border-radius: 20px;
-    padding: 32px;
-    text-align: center;
-}
-
-.btn-gold-small {
-    background: var(--gold);
-    color: #000;
-    padding: 12px 24px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 700;
-}
-
-.btn-outline {
-    background: transparent;
-    border: 1px solid var(--text-secondary);
-    color: var(--text-primary);
-    padding: 12px 24px;
-    border-radius: 8px;
+/* Itens da lista de autocomplete */
+.autocomplete-list li {
+    padding: 12px;
+    border-bottom: 1px solid #2A2A2A;
+    color: #FFFFFF;
+    /* Texto branco */
 }
 
 .hidden {
     display: none !important;
+}
+
+.bottom-spacer {
+    height: 60px;
+}
+
+/* TOAST */
+.toast-premium {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #000;
+    padding: 12px 25px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 1000;
 }

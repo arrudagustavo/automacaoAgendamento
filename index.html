@@ -7,13 +7,13 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vitão Booking</title>
 
-    <link rel="apple-touch-icon" href="LogoVitao.jpg">
+    <link rel="apple-touch-icon" href="LogoVitao.png">
     <meta name="apple-mobile-web-app-title" content="Vitão Booking">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
@@ -26,32 +26,30 @@
 
         <section id="login-section" class="section active">
             <div class="hero">
-                <img src="LogoVitao.jpg" alt="Vitão Barbearia Logo" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo Vitão Barbearia" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
                 <p class="brand-subtitle">Gestão inteligente de agendamentos</p>
             </div>
             <div class="login-controls">
                 <button id="btn-auth-manual" class="btn-login-premium">
-                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="GoogleIcon"
-                        width="20">
-                    Entrar com Google
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="G" width="20">
+                    <span>Entrar com Google</span>
                 </button>
             </div>
         </section>
 
         <section id="scheduling-section" class="section">
             <header class="premium-header">
-                <img src="LogoVitao.jpg" alt="Logo" class="mini-logo">
+                <img src="LogoVitao.png" alt="Logo" class="mini-logo">
                 <div class="user-info">
                     <span id="user-name">Carregando...</span>
-                    <img id="user-avatar" src="" alt="User" class="avatar hidden">
                 </div>
                 <button id="btn-logout" class="btn-logout">Sair</button>
             </header>
 
             <main class="premium-form">
                 <div class="input-card">
-                    <label>CLIENTE</label>
+                    <label>BUSCAR CLIENTE</label>
                     <div class="autocomplete-wrapper">
                         <input type="text" id="client-search" placeholder="Buscar na agenda..." autocomplete="off">
                         <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
@@ -69,32 +67,24 @@
                 </div>
 
                 <div class="input-card">
-                    <label>SERVIÇO / DURAÇÃO</label>
+                    <label>DURAÇÃO DO SERVIÇO</label>
                     <select id="schedule-duration">
-                        <option value="30">Corte Simples (30 min)</option>
-                        <option value="45">Corte + Barba (45 min)</option>
-                        <option value="60" selected>Combo Vitão Premium (1 hora)</option>
+                        <option value="30">30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60" selected>1 hora</option>
+                        <option value="90">1 hora e 30</option>
+                        <option value="105">1 hora e 45</option>
                     </select>
                 </div>
                 <div class="bottom-spacer"></div>
             </main>
 
             <footer class="premium-footer">
-                <button id="btn-schedule" class="btn-action-gold">Agendar Agora</button>
+                <button id="btn-schedule" class="btn-action-gold">Confirmar Agendamento</button>
             </footer>
         </section>
 
         <div id="toast" class="toast-premium hidden"></div>
-        <div id="modal-conflict" class="modal hidden">
-            <div class="modal-content dark-card">
-                <h3>Atenção</h3>
-                <p>Já existe um atendimento neste horário. Deseja manter?</p>
-                <div class="modal-actions">
-                    <button id="btn-conflict-cancel" class="btn-outline">Voltar</button>
-                    <button id="btn-conflict-confirm" class="btn-gold-small">Confirmar</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="utils.js"></script>
