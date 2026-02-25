@@ -55,42 +55,46 @@
 
         <div id="modal-form" class="modal hidden">
             <div class="dark-card">
-                <h3 id="selected-slot-title">Agendar</h3>
-                <p id="selected-full-date" class="date-label"></p>
-
-                <div class="input-card">
-                    <label>BUSCAR CLIENTE</label>
-                    <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
-                    <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+                <div class="modal-header">
+                    <h3 id="selected-slot-title">Novo Agendamento</h3>
+                    <p id="selected-full-date" class="date-label"></p>
                 </div>
 
-                <div class="row grid-2">
-                    <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
-                    <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
-                </div>
+                <div class="form-body">
+                    <div class="input-card">
+                        <label>BUSCAR CLIENTE</label>
+                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
+                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+                    </div>
 
-                <div class="input-card">
-                    <label>HORÁRIO DO SERVIÇO</label>
-                    <input type="time" id="schedule-time" step="300">
-                </div>
+                    <div class="row grid-2">
+                        <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
+                        <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
+                    </div>
 
-                <div class="input-card">
-                    <label>DURAÇÃO</label>
-                    <select id="schedule-duration">
-                        <option value="30">30 minutos</option>
-                        <option value="45">45 minutos</option>
-                        <option value="60" selected>1 hora</option>
-                        <option value="90">1 hora e 30</option>
-                        <option value="120">2 horas</option>
-                    </select>
-                </div>
+                    <div class="input-card highlight">
+                        <label>HORÁRIO DO SERVIÇO</label>
+                        <input type="time" id="schedule-time" step="300">
+                    </div>
 
-                <div class="grid-2">
-                    <button id="btn-cancel-form" class="btn-secondary">VOLTAR</button>
-                    <button id="btn-schedule" class="btn-action-gold">AGENDAR</button>
-                </div>
+                    <div class="input-card">
+                        <label>DURAÇÃO</label>
+                        <select id="schedule-duration">
+                            <option value="30">30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60" selected>1 hora</option>
+                            <option value="90">1 hora e 30</option>
+                            <option value="120">2 horas</option>
+                        </select>
+                    </div>
 
-                <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
+                    <div class="grid-2 footer-btns">
+                        <button id="btn-cancel-form" class="btn-secondary">VOLTAR</button>
+                        <button id="btn-schedule" class="btn-action-gold">AGENDAR</button>
+                    </div>
+
+                    <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
+                </div>
             </div>
         </div>
 
@@ -98,7 +102,8 @@
             <div class="dark-card success-card">
                 <div class="success-icon">✅</div>
                 <h3 style="color: var(--gold); margin-bottom: 10px;">Sucesso!</h3>
-                <p style="font-size: 14px; color: #ccc; margin-bottom: 25px;">Agendamento realizado.</p>
+                <p style="font-size: 14px; color: #ccc; margin-bottom: 25px;">Agendamento realizado no Google Agenda.
+                </p>
                 <button id="btn-open-whatsapp" class="btn-action-gold">ABRIR WHATSAPP</button>
                 <button id="btn-success-close" class="btn-secondary"
                     style="margin-top: 10px; border:none; color: #888;">FECHAR</button>

@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     daysScroll.addEventListener('scroll', () => headerWrapper.scrollLeft = daysScroll.scrollLeft);
 
-    // Horas das 07:00 às 22:00
     const hours = [];
     for (let i = 7; i <= 22; i++) {
         const h = i.toString().padStart(2, '0') + ':00';
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderWeek = async () => {
         const now = new Date();
         const start = new Date(now);
-        start.setDate(now.getDate() - now.getDay()); // Inicia no Domingo da semana vigente
+        start.setDate(now.getDate() - now.getDay()); // Inicia no Domingo da semana corrente
 
         let headHTML = "";
         const weekDates = [];
@@ -66,12 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { console.error("Erro na agenda:", e); }
+        } catch (e) { console.error("Erro renderizando semana:", e); }
     };
 
     window.openBookingForm = (date, time) => {
-        selectedDate = date;
-        currentEventId = null;
+        selectedDate = date; currentEventId = null;
         timeInput.value = time;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
@@ -83,12 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.editBooking = (id, title, desc, date, time) => {
-        currentEventId = id;
-        selectedDate = date;
+        currentEventId = id; selectedDate = date;
         timeInput.value = time;
-        document.getElementById('client-name').value = title.replace("Corte: ", "");
+        const name = title.replace("Corte: ", "");
+        document.getElementById('client-name').value = name;
         document.getElementById('client-phone').value = desc.replace("Tel: ", "");
-        document.getElementById('client-search').value = title.replace("Corte: ", "");
+        document.getElementById('client-search').value = name;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
         document.getElementById('btn-delete-event').classList.remove('hidden');
@@ -100,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const phone = document.getElementById('client-phone').value;
         const timeVal = timeInput.value;
         if (!name || !timeVal) return;
-
         try {
             if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
             await GoogleAPI.createEvent({
@@ -115,14 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("Erro ao salvar."); }
     };
 
-    // PERSISTÊNCIA E LOGIN
     const saved = localStorage.getItem('vitao_user');
     if (saved && saved !== "undefined") {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
         document.getElementById('login-section').classList.remove('active');
         document.getElementById('scheduling-section').classList.add('active');
-        renderWeek();
-        GoogleAPI.fetchContacts();
+        renderWeek(); GoogleAPI.fetchContacts();
     }
 
     if (btnAuth) btnAuth.onclick = (e) => { e.preventDefault(); GoogleAPI.requestToken(); };
@@ -136,9 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
     document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
     document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
-    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
+    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
 
-    // Autocomplete
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
     clientSearch.addEventListener('input', (e) => {
