@@ -1,19 +1,49 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "";
     let selectedTime = "";
-    let currentEventId = null; // Guarda o ID se estiver editando
+    let currentEventId = null;
 
     const loginSection = document.getElementById('login-section');
     const schedulingSection = document.getElementById('scheduling-section');
     const agendaGrid = document.getElementById('agenda-grid');
     const dateInput = document.getElementById('schedule-date');
     const modalForm = document.getElementById('modal-form');
-    const btnDelete = document.getElementById('btn-delete-event');
+    const btnAuth = document.getElementById('btn-auth-manual');
 
-    GoogleAPI.init();
+    // Inicializa Google API
+    if (typeof GoogleAPI !== 'undefined') {
+        GoogleAPI.init();
+    }
 
-    // RENDERIZAR AGENDA
-    const renderTimeline = async () => {
+    // --- FIX LOGIN: Clique com Log para Debug ---
+    if (btnAuth) {
+        btnAuth.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log("Botão entrar com Google clicado.");
+            GoogleAPI.requestToken();
+        });
+    }
+
+    // --- LOGICA DE SESSÃO PERSISTENTE ---
+    const savedUser = localStorage.getItem('vitao_user');
+    if (savedUser) {
+        document.getElementById('user-name').textContent = JSON.parse(savedUser).name;
+        loginSection.classList.remove('active');
+        schedulingSection.classList.add('active');
+        dateInput.value = new Date().toISOString().split('T')[0];
+        renderTimeline();
+        GoogleAPI.fetchContacts();
+    }
+
+    document.addEventListener('google-auth-success', async () => {
+        const user = await GoogleAPI.getProfile();
+        if (user) localStorage.setItem('vitao_user', JSON.stringify(user));
+        location.reload();
+    });
+
+    // --- LOGICA DA AGENDA (CRUD) ---
+    async function renderTimeline() {
+        if (!dateInput.value) return;
         agendaGrid.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Buscando agenda...</p>';
         try {
             const occupiedEvents = await GoogleAPI.listEvents(dateInput.value);
@@ -41,14 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="info">Disponível</div>
                         </div>`;
             }).join('');
-        } catch (e) { agendaGrid.innerHTML = '<p>Erro ao sincronizar.</p>'; }
-    };
+        } catch (e) { agendaGrid.innerHTML = '<p>Erro ao sincronizar agenda.</p>'; }
+    }
 
-    // ABRIR PARA NOVO AGENDAMENTO
     window.openBookingForm = (time) => {
         currentEventId = null;
         selectedTime = time;
-        btnDelete.classList.add('hidden');
+        document.getElementById('btn-delete-event').classList.add('hidden');
         document.getElementById('selected-slot-title').textContent = `Agendar às ${time}`;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
@@ -56,11 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modalForm.classList.remove('hidden');
     };
 
-    // ABRIR PARA EDITAR
     window.editBooking = (time, id, name, desc) => {
         currentEventId = id;
         selectedTime = time;
-        btnDelete.classList.remove('hidden');
+        document.getElementById('btn-delete-event').classList.remove('hidden');
         document.getElementById('selected-slot-title').textContent = `Editar: ${time}`;
         document.getElementById('client-name').value = name;
         document.getElementById('client-search').value = name;
@@ -68,59 +96,44 @@ document.addEventListener('DOMContentLoaded', () => {
         modalForm.classList.remove('hidden');
     };
 
-    // EXCLUIR
-    btnDelete.addEventListener('click', async () => {
-        if (!confirm("Deseja realmente excluir este agendamento?")) return;
-        try {
+    document.getElementById('btn-delete-event').addEventListener('click', async () => {
+        if (confirm("Excluir este agendamento?")) {
             await GoogleAPI.deleteEvent(currentEventId);
             modalForm.classList.add('hidden');
             renderTimeline();
-            Utils.showToast("Agendamento excluído!");
-        } catch (e) { alert("Erro ao excluir."); }
+        }
     });
 
-    // SALVAR (CRIA NOVO OU ATUALIZA)
     document.getElementById('btn-schedule').addEventListener('click', async () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
-        const duration = document.getElementById('schedule-duration').value;
-
         if (!name) return;
-
         try {
-            // Se estiver editando, remove o antigo primeiro
             if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
-
             await GoogleAPI.createEvent({
                 summary: `Corte: ${name}`,
                 description: `Tel: ${phone}`,
                 start: { dateTime: Utils.toISOWithOffset(dateInput.value, selectedTime), timeZone: 'America/Sao_Paulo' },
-                end: { dateTime: Utils.toISOWithOffset(dateInput.value, Utils.calculateEndTime(selectedTime, duration)), timeZone: 'America/Sao_Paulo' }
+                end: { dateTime: Utils.toISOWithOffset(dateInput.value, Utils.calculateEndTime(selectedTime, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
             });
-
-            urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dateInput.value.split('-').reverse().join('/')} às ${selectedTime}. Tamo junto!`)}`;
             modalForm.classList.add('hidden');
-            document.getElementById('modal-success').classList.remove('hidden');
             renderTimeline();
-        } catch (err) { alert("Erro ao salvar."); }
+            urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dateInput.value.split('-').reverse().join('/')} às ${selectedTime}. Tamo junto!`)}`;
+            document.getElementById('modal-success').classList.remove('hidden');
+        } catch (e) { alert("Erro ao salvar."); }
     });
 
-    // RESTANTE DAS FUNÇÕES (LOGIN / AUTOCOMPLETE)
+    // Eventos Gerais
     dateInput.addEventListener('change', renderTimeline);
-    const savedUser = localStorage.getItem('vitao_user');
-    if (savedUser) {
-        document.getElementById('user-name').textContent = JSON.parse(savedUser).name;
-        loginSection.classList.remove('active');
-        schedulingSection.classList.add('active');
-        dateInput.value = new Date().toISOString().split('T')[0];
-        renderTimeline();
-        GoogleAPI.fetchContacts();
-    }
-    document.getElementById('btn-auth-manual').addEventListener('click', () => GoogleAPI.requestToken());
-    document.addEventListener('google-auth-success', () => location.reload());
-    document.getElementById('btn-logout').addEventListener('click', () => { localStorage.removeItem('vitao_user'); location.reload(); });
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        localStorage.removeItem('vitao_user');
+        location.reload();
+    });
     document.getElementById('btn-cancel-form').addEventListener('click', () => modalForm.classList.add('hidden'));
+    document.getElementById('btn-open-whatsapp').addEventListener('click', () => window.location.href = urlWhatsAppFinal);
+    document.getElementById('btn-success-close').addEventListener('click', () => document.getElementById('modal-success').classList.add('hidden'));
 
+    // Autocomplete Blindado
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
     clientSearch.addEventListener('input', (e) => {
@@ -130,15 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
         GoogleAPI.contacts.forEach(c => {
             if (c.name.toLowerCase().includes(q)) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
         });
-        autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
+        autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
         autocompleteList.classList.remove('hidden');
     });
+
     window.selectClient = (name, phone) => {
         document.getElementById('client-name').value = name;
         document.getElementById('client-phone').value = phone;
         clientSearch.value = name;
         autocompleteList.classList.add('hidden');
     };
-    document.getElementById('btn-open-whatsapp').addEventListener('click', () => window.location.href = urlWhatsAppFinal);
-    document.getElementById('btn-success-close').addEventListener('click', () => document.getElementById('modal-success').classList.add('hidden'));
 });
