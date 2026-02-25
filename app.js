@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // LÓGICA DE SWIPE PARA MUDAR A SEMANA
+    // SWIPE PARA IPHONE
     let touchStartX = 0;
     let touchEndX = 0;
     if (calendarViewport) {
@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // GERA HORÁRIOS DA GRADE
     for (let i = 7; i <= 22; i++) {
         const div = document.createElement('div');
         div.className = 'time-marker';
@@ -62,11 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const start = new Date(currentWeekStart);
 
-        // ATUALIZA O MÊS NA TELA
         const monthStr = start.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-        document.getElementById('current-month').textContent = monthStr;
+        const monthEl = document.getElementById('current-month');
+        if (monthEl) monthEl.textContent = monthStr;
 
-        // FIX: DIV VAZIA PARA PULAR A COLUNA DE HORAS E ALINHAR OS DIAS
         let headHTML = "<div></div>";
         const weekDates = [];
 
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { console.error("Erro ao carregar a agenda:", e); }
+        } catch (e) { console.error("Erro na agenda:", e); }
     };
 
     window.openBookingForm = (date, time) => {
@@ -154,29 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("Erro ao salvar."); }
     };
 
-    const saved = localStorage.getItem('vitao_user');
-    if (saved && saved !== "undefined") {
-        document.getElementById('user-name').textContent = JSON.parse(saved).name;
-        document.getElementById('login-section').classList.remove('active');
-        document.getElementById('scheduling-section').classList.add('active');
-        renderWeek();
-        GoogleAPI.fetchContacts();
-    }
-
-    document.addEventListener('google-auth-success', async () => {
-        const user = await GoogleAPI.getProfile();
-        localStorage.setItem('vitao_user', JSON.stringify(user));
-        location.reload();
-    });
-
-    document.getElementById('btn-cancel-form').onclick = () => modalForm.classList.add('hidden');
-    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
-    document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
-    document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
-    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
-
     // ==========================================
-    // AUTO-COMPLETE BLINDADO
+    // AUTO-COMPLETE PODEROSO
     // ==========================================
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
@@ -192,17 +171,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Tenta buscar os contatos caso a lista esteja vazia
-        if (typeof GoogleAPI !== 'undefined' && (!GoogleAPI.contacts || GoogleAPI.contacts.length === 0)) {
-            try { await GoogleAPI.fetchContacts(); } catch (err) { console.log("Aguardando token..."); }
+        // Se ainda não tem contatos, força a busca
+        if (GoogleAPI.contacts.length === 0 && GoogleAPI.accessToken) {
+            await GoogleAPI.fetchContacts();
         }
 
         const results = [];
-        if (GoogleAPI.contacts && GoogleAPI.contacts.length > 0) {
+        if (GoogleAPI.contacts.length > 0) {
             GoogleAPI.contacts.forEach(c => {
-                // Checagens de segurança para contatos salvos sem nome ou telefone
                 const nameMatch = c.name && c.name.toLowerCase().includes(q);
-                const phoneMatch = c.phones && c.phones.some(p => p.includes(q));
+
+                // Limpa formatação (parênteses, traços, etc)
+                const qNum = q.replace(/\D/g, '');
+                const phoneMatch = c.phones && c.phones.some(p => {
+                    if (!p) return false;
+                    const pNum = p.replace(/\D/g, '');
+                    return qNum.length > 2 && pNum.includes(qNum);
+                });
 
                 if (nameMatch || phoneMatch) {
                     if (c.phones && c.phones.length > 0) {
@@ -215,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (results.length > 0) {
-            autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
+            autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone || 'Sem número'}</li>`).join('');
             autocompleteList.classList.remove('hidden');
         } else {
             autocompleteList.innerHTML = `<li style="padding: 15px; color: #888; font-size: 13px; text-align: center;">Nenhum contato encontrado</li>`;
@@ -226,7 +211,46 @@ document.addEventListener('DOMContentLoaded', () => {
     window.selectClient = (name, phone) => {
         document.getElementById('client-name').value = name;
         document.getElementById('client-phone').value = phone;
-        clientSearch.value = name; // Mantém o que foi pesquisado na barra
+        clientSearch.value = name;
         autocompleteList.classList.add('hidden');
     };
+
+    // ==========================================
+    // LOGIN SEM RELOAD (MANTÉM O TOKEN SALVO)
+    // ==========================================
+    document.addEventListener('google-auth-success', async () => {
+        try {
+            const user = await GoogleAPI.getProfile();
+            localStorage.setItem('vitao_user', JSON.stringify(user));
+
+            document.getElementById('user-name').textContent = user.name;
+            document.getElementById('login-section').classList.remove('active');
+            document.getElementById('scheduling-section').classList.add('active');
+
+            await GoogleAPI.fetchContacts();
+            renderWeek();
+        } catch (e) {
+            console.error("Erro no pós-login", e);
+        }
+    });
+
+    const saved = localStorage.getItem('vitao_user');
+    if (saved && saved !== "undefined") {
+        document.getElementById('user-name').textContent = JSON.parse(saved).name;
+        document.getElementById('login-section').classList.remove('active');
+        document.getElementById('scheduling-section').classList.add('active');
+
+        // Se a pessoa deu F5, precisa clicar em logar de novo internamente
+        // O ideal aqui é ter o token ativo, se der erro ao carregar a agenda, a gente avisa.
+        if (GoogleAPI.accessToken) {
+            renderWeek();
+            GoogleAPI.fetchContacts();
+        }
+    }
+
+    document.getElementById('btn-cancel-form').onclick = () => modalForm.classList.add('hidden');
+    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
+    document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
+    document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
+    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
 });

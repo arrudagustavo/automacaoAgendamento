@@ -5,19 +5,25 @@ const GoogleAPI = {
 
     init() {
         this.client = google.accounts.oauth2.initTokenClient({
-            client_id: '602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com',
+            client_id: '602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com', // MANTENHA O SEU CLIENT ID AQUI
             scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/contacts.readonly',
             callback: (response) => {
-                if (response.error !== undefined) return;
+                if (response.error !== undefined) {
+                    console.error("Erro na autenticação:", response);
+                    return;
+                }
                 this.accessToken = response.access_token;
                 document.dispatchEvent(new CustomEvent('google-auth-success'));
             },
         });
     },
 
-    requestToken() { this.client.requestAccessToken({ prompt: '' }); },
+    requestToken() {
+        this.client.requestAccessToken({ prompt: '' });
+    },
 
     async getProfile() {
+        if (!this.accessToken) return null;
         const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
             headers: { Authorization: `Bearer ${this.accessToken}` }
         });
@@ -25,14 +31,23 @@ const GoogleAPI = {
     },
 
     async fetchContacts() {
-        const resp = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=1000', {
-            headers: { Authorization: `Bearer ${this.accessToken}` }
-        });
-        const data = await resp.json();
-        this.contacts = (data.connections || []).map(c => ({
-            name: c.names ? c.names[0].displayName : 'Sem Nome',
-            phones: c.phoneNumbers ? c.phoneNumbers.map(p => p.value) : []
-        }));
+        if (!this.accessToken) return;
+        try {
+            const resp = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=1000', {
+                headers: { Authorization: `Bearer ${this.accessToken}` }
+            });
+            const data = await resp.json();
+            if (data.connections) {
+                this.contacts = data.connections.map(c => ({
+                    // Proteção caso o contato não tenha nome
+                    name: c.names && c.names.length > 0 ? c.names[0].displayName : 'Sem Nome',
+                    // Proteção caso o contato não tenha número
+                    phones: c.phoneNumbers ? c.phoneNumbers.map(p => p.value) : []
+                }));
+            }
+        } catch (err) {
+            console.error("Erro ao buscar contatos do Google:", err);
+        }
     },
 
     async createEvent(event) {
@@ -51,8 +66,8 @@ const GoogleAPI = {
         });
     },
 
-    // NOVA: Busca eventos de um período (Semana)
     async listEventsRange(timeMin, timeMax) {
+        if (!this.accessToken) return [];
         const resp = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`, {
             headers: { Authorization: `Bearer ${this.accessToken}` }
         });
