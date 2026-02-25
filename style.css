@@ -1,6 +1,4 @@
 :root {
-    --bg-main: #000000;
-    --card-bg: rgba(18, 18, 18, 0.9);
     --gold: #C6A85B;
     --red: #ff4444;
     --border: #222;
@@ -14,19 +12,19 @@
 }
 
 body {
-    background-color: var(--bg-main);
+    background: #000;
     color: #fff;
     font-family: 'Inter', sans-serif;
     height: 100dvh;
     width: 100vw;
     overflow: hidden;
+    position: fixed;
 }
 
 .app-container {
     max-width: 440px;
     margin: 0 auto;
     height: 100%;
-    background: var(--bg-main);
     display: flex;
     flex-direction: column;
 }
@@ -34,7 +32,6 @@ body {
 .section {
     display: none;
     height: 100%;
-    width: 100%;
     flex-direction: column;
     position: relative;
 }
@@ -43,50 +40,40 @@ body {
     display: flex !important;
 }
 
-/* FIX TELA DE LOGIN ACHATADA */
-.login-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    padding: 20px;
-}
-
+/* AJUSTE LOGIN: Centraliza a logo e joga o botão para baixo */
 .hero {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
+    padding: 20px;
 }
 
 .main-logo-login {
-    width: 80%;
-    max-width: 280px;
+    width: 220px;
     margin-bottom: 20px;
-    object-fit: contain;
 }
 
 .brand-title {
     font-family: 'Playfair Display', serif;
-    font-size: 32px;
+    font-size: 30px;
     color: var(--gold);
-    margin-bottom: 5px;
 }
 
 .brand-subtitle {
     color: #888;
     font-size: 14px;
+    margin-top: 5px;
 }
 
-.login-footer {
-    padding-bottom: 80px;
+.login-controls {
+    padding: 0 24px 140px 24px;
 }
 
-/* Ajuste de 2 dedos acima da borda */
+/* 2 dedos de margem no iPhone */
 
-/* HEADER & NOTCH IPHONE */
+/* HEADER & NOTCH */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -95,49 +82,39 @@ body {
 
 .header-content {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     padding: 15px 20px;
+}
+
+.mini-logo {
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: 10px;
 }
 
-.mini-logo {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-}
-
-.btn-logout {
-    background: transparent;
-    border: none;
-    color: var(--gold);
-    font-weight: 700;
-    font-size: 13px;
-}
-
-/* TIMELINE DA AGENDA */
+/* AGENDA */
 .main-scroll {
     flex: 1;
     overflow-y: auto;
     padding: 15px;
-    padding-bottom: 40px;
+    padding-bottom: 100px;
 }
 
 .agenda-timeline {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     margin-top: 15px;
 }
 
 .slot {
     display: flex;
-    align-items: center;
     padding: 16px;
     border-radius: 12px;
     background: #111;
@@ -151,50 +128,67 @@ body {
 
 .slot.ocupado {
     border-left: 4px solid var(--red);
-    background: rgba(255, 68, 68, 0.05);
+    background: rgba(255, 68, 68, 0.08);
 }
 
 .slot .time {
     font-weight: 800;
     color: var(--gold);
-    width: 70px;
-    font-size: 14px;
+    width: 65px;
 }
 
-.slot .info {
-    font-size: 14px;
-    color: #fff;
+/* BOTÕES E INPUTS */
+.btn-login-premium {
+    width: 100%;
+    padding: 18px;
+    border-radius: 50px;
+    background: #FFF;
+    color: #000;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    font-size: 16px;
 }
 
-/* INPUTS & CARDS */
-.input-card {
-    background: var(--card-bg);
-    padding: 12px;
+.btn-action-gold {
+    width: 100%;
+    padding: 18px;
     border-radius: 12px;
-    border: 1px solid var(--border);
+    background: var(--gold);
+    color: #000;
+    font-weight: 800;
+    border: none;
+    margin-top: 10px;
+}
+
+.input-card {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #333;
     margin-bottom: 10px;
 }
 
 .input-card label {
     display: block;
     font-size: 10px;
-    font-weight: 800;
     color: var(--gold);
+    font-weight: 800;
     margin-bottom: 4px;
-    text-transform: uppercase;
 }
 
-.input-card input,
-.input-card select {
-    width: 100%;
-    background: transparent;
+.input-card input {
+    background: none;
     border: none;
     color: #fff;
-    font-size: 16px;
+    width: 100%;
     outline: none;
+    font-size: 16px;
 }
 
-/* MODAIS */
 .modal {
     position: fixed;
     inset: 0;
@@ -213,30 +207,7 @@ body {
     border-radius: 20px;
     width: 100%;
     max-width: 360px;
-}
-
-/* BOTÕES */
-.btn-action-gold {
-    background: var(--gold);
-    color: #000;
-    border: none;
-    padding: 16px;
-    border-radius: 12px;
-    font-weight: 800;
-    width: 100%;
-    margin-top: 10px;
-    text-transform: uppercase;
-}
-
-.btn-secondary {
-    background: #333;
-    color: #fff;
-    border: none;
-    padding: 16px;
-    border-radius: 12px;
-    font-weight: 600;
-    width: 100%;
-    margin-top: 10px;
+    text-align: center;
 }
 
 .btn-delete {
@@ -248,22 +219,6 @@ body {
     border-radius: 10px;
     margin-top: 15px;
     font-weight: 800;
-    font-size: 12px;
-}
-
-.btn-login-premium {
-    width: 100%;
-    padding: 18px;
-    border-radius: 50px;
-    background: #FFF;
-    color: #000;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    border: none;
-    font-size: 16px;
 }
 
 .grid-2 {
@@ -276,15 +231,18 @@ body {
     display: none !important;
 }
 
-.toast-premium {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gold);
-    color: #000;
-    padding: 12px 25px;
-    border-radius: 50px;
-    font-weight: 700;
-    z-index: 3000;
+.autocomplete-list {
+    background: #222;
+    border-radius: 8px;
+    list-style: none;
+    margin-top: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.autocomplete-list li {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+    font-size: 13px;
 }
