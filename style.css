@@ -12,7 +12,7 @@
 }
 
 body {
-    background-color: var(--bg);
+    background: #000;
     color: #fff;
     font-family: 'Inter', sans-serif;
     height: 100dvh;
@@ -33,13 +33,14 @@ body {
     height: 100%;
     width: 100%;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .section.active {
     display: flex !important;
 }
 
-/* LOGIN CORRIGIDO */
+/* LOGIN FIX: Hero não pode cobrir o footer */
 .hero-login {
     flex: 1;
     display: flex;
@@ -47,11 +48,13 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    pointer-events: none;
 }
 
 .main-logo-login {
     width: 220px;
     margin-bottom: 20px;
+    pointer-events: auto;
 }
 
 .brand-title {
@@ -68,9 +71,27 @@ body {
 
 .login-action {
     padding: 0 24px 140px 24px;
+    position: relative;
+    z-index: 999;
 }
 
-/* CABEÇALHO AGENDA */
+.btn-login-premium {
+    width: 100%;
+    padding: 18px;
+    border-radius: 50px;
+    background: #FFF;
+    color: #000;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* AGENDA UX */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -109,7 +130,6 @@ body {
     margin-top: 2px;
 }
 
-/* GRADE DE SCROLL SEMANAL */
 .calendar-viewport {
     flex: 1;
     overflow: auto;
@@ -123,10 +143,6 @@ body {
     position: relative;
 }
 
-.time-labels {
-    border-right: 1px solid #111;
-}
-
 .time-marker {
     height: 60px;
     font-size: 10px;
@@ -134,10 +150,6 @@ body {
     text-align: right;
     padding-right: 5px;
     transform: translateY(-7px);
-}
-
-.days-columns {
-    display: contents;
 }
 
 .day-strip {
@@ -152,7 +164,6 @@ body {
     width: 100%;
 }
 
-/* EVENTOS (ESTILO GOOGLE CALENDAR) */
 .event-card {
     position: absolute;
     left: 2px;
@@ -168,7 +179,6 @@ body {
     z-index: 5;
 }
 
-/* MODAIS */
 .modal {
     position: fixed;
     inset: 0;
@@ -189,22 +199,6 @@ body {
     max-width: 360px;
 }
 
-.btn-login-premium {
-    width: 100%;
-    padding: 18px;
-    border-radius: 50px;
-    background: #FFF;
-    color: #000;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-}
-
 .btn-action-gold {
     background: var(--gold);
     color: #000;
@@ -213,7 +207,7 @@ body {
     border-radius: 10px;
     font-weight: 800;
     width: 100%;
-    margin-top: 10px;
+    cursor: pointer;
 }
 
 .input-card {

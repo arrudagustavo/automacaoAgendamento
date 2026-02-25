@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "", selectedDate = "", selectedTime = "", currentEventId = null;
+    const btnAuth = document.getElementById('btn-auth-manual');
     const weekHeader = document.getElementById('week-header');
     const daysWrapper = document.getElementById('days-wrapper');
     const timeColumn = document.getElementById('time-column');
-    const btnAuth = document.getElementById('btn-auth-manual');
 
     GoogleAPI.init();
 
-    // 1. Inicia Horas (08h às 21h)
+    // Inicia Horários
     const hours = [];
     for (let i = 8; i <= 21; i++) {
         const h = i.toString().padStart(2, '0') + ':00';
@@ -18,11 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
         timeColumn.appendChild(div);
     }
 
-    // 2. Renderiza Grade Semanal
+    // FIX LOGIN: Atribuição direta para evitar conflitos de eventos
+    if (btnAuth) {
+        btnAuth.onclick = (e) => {
+            e.preventDefault();
+            console.log("Clique no Login detectado!");
+            GoogleAPI.requestToken();
+        };
+    }
+
     const renderWeek = async () => {
         const now = new Date();
         const start = new Date(now);
-        start.setDate(now.getDate() - now.getDay()); // Começa no Domingo
+        start.setDate(now.getDate() - now.getDay());
 
         let headHTML = '<div style="width:45px"></div>';
         const weekDates = [];
@@ -63,19 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { daysWrapper.innerHTML = "<p>Erro ao carregar agenda.</p>"; }
     };
 
-    // BOTÃO LOGIN
-    btnAuth.onclick = (e) => {
-        e.preventDefault();
-        GoogleAPI.requestToken();
-    };
-
     document.addEventListener('google-auth-success', async () => {
         const user = await GoogleAPI.getProfile();
         localStorage.setItem('vitao_user', JSON.stringify(user));
         location.reload();
     });
 
-    // NAVEGAÇÃO INTERNA
+    // Funções Globais
     window.openBookingForm = (date, time) => {
         selectedDate = date; selectedTime = time; currentEventId = null;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
@@ -91,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
-    // Sessão Ativa
     const saved = localStorage.getItem('vitao_user');
     if (saved) {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
