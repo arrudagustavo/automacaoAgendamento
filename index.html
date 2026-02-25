@@ -6,16 +6,11 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vitão Booking</title>
-
     <link rel="apple-touch-icon" href="VitaoSolido.jpg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
     <script src="https://accounts.google.com/gsi/client"></script>
 </head>
 
@@ -24,9 +19,8 @@
 
         <section id="login-section" class="section active">
             <div class="hero-login">
-                <img src="LogoVitao.png" alt="Logo Vitão" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
-                <p class="brand-subtitle">Gestão de Agenda Profissional</p>
             </div>
             <div class="login-action">
                 <button id="btn-auth-manual" class="btn-login-premium" type="button">
@@ -39,15 +33,20 @@
         <section id="scheduling-section" class="section">
             <header class="premium-header">
                 <div class="header-top">
-                    <span id="user-name">Carregando...</span>
+                    <span id="user-name">...</span>
                     <button id="btn-logout" class="btn-logout">Sair</button>
                 </div>
-                <div id="week-header" class="week-days-row"></div>
+                <div class="header-scroll-wrapper">
+                    <div id="week-header" class="week-days-row"></div>
+                </div>
             </header>
+
             <main class="calendar-viewport">
                 <div class="calendar-grid">
                     <div id="time-column" class="time-labels"></div>
-                    <div id="days-wrapper" class="days-columns"></div>
+                    <div class="days-scroll-container">
+                        <div id="days-wrapper" class="days-columns"></div>
+                    </div>
                 </div>
             </main>
         </section>
@@ -55,7 +54,7 @@
         <div id="modal-form" class="modal hidden">
             <div class="dark-card">
                 <h3 id="selected-slot-title">Agendar</h3>
-                <p id="selected-full-date" style="font-size:11px; color:#888; margin-bottom:10px;"></p>
+                <p id="selected-full-date" class="date-label"></p>
                 <div class="input-card">
                     <label>CLIENTE</label>
                     <input type="text" id="client-search" placeholder="Buscar..." autocomplete="off">
@@ -80,7 +79,6 @@
             </div>
         </div>
     </div>
-
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>

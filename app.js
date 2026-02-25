@@ -1,29 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "", selectedDate = "", selectedTime = "", currentEventId = null;
     const btnAuth = document.getElementById('btn-auth-manual');
-    const loginSection = document.getElementById('login-section');
-    const schedulingSection = document.getElementById('scheduling-section');
     const weekHeader = document.getElementById('week-header');
     const daysWrapper = document.getElementById('days-wrapper');
     const timeColumn = document.getElementById('time-column');
+    const headerWrapper = document.querySelector('.header-scroll-wrapper');
+    const daysScroll = document.querySelector('.days-scroll-container');
 
-    // Inicializa API IMEDIATAMENTE
-    if (typeof GoogleAPI !== 'undefined') {
-        GoogleAPI.init();
-    }
+    GoogleAPI.init();
 
-    // CLIQUE DIRETO - Sem intermediários para evitar bloqueio de pop-up
-    if (btnAuth) {
-        btnAuth.onclick = (e) => {
-            e.preventDefault();
-            console.log("Iniciando fluxo de login Google...");
-            GoogleAPI.requestToken();
-        };
-    }
+    // 1. Sincroniza o scroll lateral do cabeçalho com o da grade
+    daysScroll.addEventListener('scroll', () => {
+        headerWrapper.scrollLeft = daysScroll.scrollLeft;
+    });
 
-    // Grade de Horários (08h às 21h)
+    // 2. Horários das 07:00 às 22:00
     const hours = [];
-    for (let i = 8; i <= 21; i++) {
+    for (let i = 7; i <= 22; i++) {
         const h = i.toString().padStart(2, '0') + ':00';
         hours.push(h);
         const div = document.createElement('div');
@@ -35,9 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderWeek = async () => {
         const now = new Date();
         const start = new Date(now);
-        start.setDate(now.getDate() - now.getDay());
+        start.setDate(now.getDate() - now.getDay()); // Domingo da semana vigente
 
-        let headHTML = '<div style="width:45px"></div>';
+        let headHTML = "";
         const weekDates = [];
         for (let i = 0; i < 7; i++) {
             const d = new Date(start); d.setDate(start.getDate() + i);
@@ -63,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 events.filter(e => (e.start.dateTime || e.start.date).startsWith(dateISO)).forEach(ev => {
                     const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
-                    const top = (s.getHours() + s.getMinutes() / 60 - 8) * 60;
+                    // Cálculo de posição (80px por hora se 60px não for suficiente, ajustado para 60px)
+                    const top = (s.getHours() + s.getMinutes() / 60 - 7) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
                     gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px" 
                                      onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}')">
@@ -73,8 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { daysWrapper.innerHTML = "<p>Erro ao carregar agenda.</p>"; }
+        } catch (e) { console.error(e); }
     };
+
+    if (btnAuth) {
+        btnAuth.onclick = (e) => {
+            e.preventDefault();
+            GoogleAPI.requestToken();
+        };
+    }
 
     document.addEventListener('google-auth-success', async () => {
         const user = await GoogleAPI.getProfile();
@@ -82,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     });
 
-    // Funções de Modal
     window.openBookingForm = (date, time) => {
         selectedDate = date; selectedTime = time; currentEventId = null;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
@@ -98,16 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
-    // Sessão
     const saved = localStorage.getItem('vitao_user');
     if (saved) {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
-        loginSection.classList.remove('active');
-        schedulingSection.classList.add('active');
+        document.getElementById('login-section').classList.remove('active');
+        document.getElementById('scheduling-section').classList.add('active');
         renderWeek();
-        GoogleAPI.fetchContacts();
     }
 
-    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
     document.getElementById('btn-cancel-form').onclick = () => document.getElementById('modal-form').classList.add('hidden');
+    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
 });

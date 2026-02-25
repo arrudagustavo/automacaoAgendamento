@@ -2,6 +2,7 @@
     --gold: #C6A85B;
     --bg: #000;
     --border: #222;
+    --blue-google: #039BE5;
 }
 
 * {
@@ -16,31 +17,30 @@ body {
     color: #fff;
     font-family: 'Inter', sans-serif;
     height: 100dvh;
-    width: 100vw;
     overflow: hidden;
     position: fixed;
+    width: 100%;
 }
 
 .app-container {
     max-width: 440px;
     margin: 0 auto;
     height: 100%;
-    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .section {
     display: none;
     height: 100%;
-    width: 100%;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .section.active {
     display: flex !important;
 }
 
-/* LOGIN FIX: Hero não pode cobrir o footer */
+/* LOGIN */
 .hero-login {
     flex: 1;
     display: flex;
@@ -48,36 +48,28 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    pointer-events: none;
 }
 
 .main-logo-login {
-    width: 220px;
+    width: 200px;
     margin-bottom: 20px;
-    pointer-events: auto;
 }
 
 .brand-title {
     font-family: 'Playfair Display', serif;
-    font-size: 32px;
+    font-size: 28px;
     color: var(--gold);
 }
 
-.brand-subtitle {
-    color: #888;
-    font-size: 14px;
-    margin-top: 5px;
-}
-
 .login-action {
-    padding: 0 24px 140px 24px;
+    padding: 0 24px 100px 24px;
     position: relative;
-    z-index: 999;
+    z-index: 100;
 }
 
 .btn-login-premium {
     width: 100%;
-    padding: 18px;
+    padding: 16px;
     border-radius: 50px;
     background: #FFF;
     color: #000;
@@ -91,7 +83,7 @@ body {
     cursor: pointer;
 }
 
-/* AGENDA UX */
+/* CALENDÁRIO */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -105,42 +97,58 @@ body {
     align-items: center;
 }
 
-.week-days-row {
-    display: grid;
-    grid-template-columns: 45px repeat(7, 1fr);
-    padding: 10px 0;
-    width: 180%;
+/* Faz o cabeçalho de dias acompanhar o scroll lateral da grade */
+.header-scroll-wrapper {
+    overflow: hidden;
+    padding-left: 50px;
 }
 
+.week-days-row {
+    display: flex;
+    width: 700px;
+}
+
+/* 100px por dia aprox */
 .day-label {
+    width: 100px;
     text-align: center;
-    font-size: 9px;
+    padding: 5px 0;
+    font-size: 10px;
     color: #666;
-    font-weight: 800;
 }
 
 .day-label.today {
-    color: var(--gold);
+    color: var(--blue-google);
 }
 
 .day-num {
     display: block;
-    font-size: 14px;
+    font-size: 16px;
     color: #fff;
     margin-top: 2px;
 }
 
+/* VIEWPORT COM SCROLL DUPLO */
 .calendar-viewport {
     flex: 1;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
 }
 
 .calendar-grid {
-    display: grid;
-    grid-template-columns: 45px repeat(7, 1fr);
-    width: 180%;
+    display: flex;
+    width: 750px;
     position: relative;
+}
+
+.time-labels {
+    width: 50px;
+    flex-shrink: 0;
+    background: #000;
+    position: sticky;
+    left: 0;
+    z-index: 5;
 }
 
 .time-marker {
@@ -148,11 +156,26 @@ body {
     font-size: 10px;
     color: #444;
     text-align: right;
-    padding-right: 5px;
+    padding-right: 8px;
     transform: translateY(-7px);
+    border-bottom: 1px solid transparent;
+}
+
+.days-scroll-container {
+    flex: 1;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.days-columns {
+    display: flex;
+    width: 700px;
+    position: relative;
 }
 
 .day-strip {
+    width: 100px;
+    flex-shrink: 0;
     border-right: 1px solid #111;
     position: relative;
     background-image: linear-gradient(#111 1px, transparent 1px);
@@ -164,25 +187,28 @@ body {
     width: 100%;
 }
 
+/* EVENTO UX GOOGLE */
 .event-card {
     position: absolute;
     left: 2px;
     right: 2px;
-    background: rgba(198, 168, 91, 0.25);
-    border-left: 3px solid var(--gold);
+    background: rgba(3, 155, 229, 0.3);
+    border-left: 3px solid var(--blue-google);
     border-radius: 4px;
     padding: 4px;
     font-size: 9px;
     color: #fff;
     font-weight: 600;
     overflow: hidden;
-    z-index: 5;
+    z-index: 2;
+    pointer-events: auto;
 }
 
+/* MODAL */
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -193,45 +219,10 @@ body {
 .dark-card {
     background: #121212;
     border: 1px solid var(--gold);
-    padding: 25px;
-    border-radius: 20px;
+    padding: 20px;
+    border-radius: 15px;
     width: 100%;
-    max-width: 360px;
-}
-
-.btn-action-gold {
-    background: var(--gold);
-    color: #000;
-    border: none;
-    padding: 15px;
-    border-radius: 10px;
-    font-weight: 800;
-    width: 100%;
-    cursor: pointer;
-}
-
-.input-card {
-    background: #1a1a1a;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #333;
-    margin-bottom: 8px;
-}
-
-.input-card label {
-    font-size: 9px;
-    color: var(--gold);
-    display: block;
-    margin-bottom: 2px;
-    font-weight: 800;
-}
-
-.input-card input {
-    background: none;
-    border: none;
-    color: #fff;
-    width: 100%;
-    outline: none;
+    max-width: 340px;
 }
 
 .hidden {
