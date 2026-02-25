@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     daysScroll.addEventListener('scroll', () => headerWrapper.scrollLeft = daysScroll.scrollLeft);
 
+    // Horas das 07:00 às 22:00
     const hours = [];
     for (let i = 7; i <= 22; i++) {
         const h = i.toString().padStart(2, '0') + ':00';
@@ -26,8 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderWeek = async () => {
         const now = new Date();
         const start = new Date(now);
-        // Garante que comece no Domingo (0)
-        start.setDate(now.getDate() - now.getDay());
+        start.setDate(now.getDate() - now.getDay()); // Inicia no Domingo da semana vigente
 
         let headHTML = "";
         const weekDates = [];
@@ -66,13 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Erro na agenda:", e); }
     };
 
     window.openBookingForm = (date, time) => {
         selectedDate = date;
         currentEventId = null;
-        timeInput.value = time; // Define a hora clicada, mas permite mudar minutos
+        timeInput.value = time;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-schedule').onclick = async () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
-        const timeVal = timeInput.value; // Pega o valor editado (hora:minuto)
+        const timeVal = timeInput.value;
         if (!name || !timeVal) return;
 
         try {
@@ -115,7 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("Erro ao salvar."); }
     };
 
-    // Resto do código (Login, Logout, Modal Success) mantido igual para segurança...
+    // PERSISTÊNCIA E LOGIN
+    const saved = localStorage.getItem('vitao_user');
+    if (saved && saved !== "undefined") {
+        document.getElementById('user-name').textContent = JSON.parse(saved).name;
+        document.getElementById('login-section').classList.remove('active');
+        document.getElementById('scheduling-section').classList.add('active');
+        renderWeek();
+        GoogleAPI.fetchContacts();
+    }
+
     if (btnAuth) btnAuth.onclick = (e) => { e.preventDefault(); GoogleAPI.requestToken(); };
     document.addEventListener('google-auth-success', async () => {
         const user = await GoogleAPI.getProfile();
@@ -123,16 +132,30 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     });
 
-    const saved = localStorage.getItem('vitao_user');
-    if (saved) {
-        document.getElementById('user-name').textContent = JSON.parse(saved).name;
-        document.getElementById('login-section').classList.remove('active');
-        document.getElementById('scheduling-section').classList.add('active');
-        renderWeek();
-        GoogleAPI.fetchContacts();
-    }
     document.getElementById('btn-cancel-form').onclick = () => modalForm.classList.add('hidden');
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
     document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
     document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
+    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
+
+    // Autocomplete
+    const clientSearch = document.getElementById('client-search');
+    const autocompleteList = document.getElementById('autocomplete-list');
+    clientSearch.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        if (q.length < 2) { autocompleteList.classList.add('hidden'); return; }
+        const results = [];
+        GoogleAPI.contacts.forEach(c => {
+            if (c.name.toLowerCase().includes(q)) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
+        });
+        autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
+        autocompleteList.classList.remove('hidden');
+    });
+
+    window.selectClient = (name, phone) => {
+        document.getElementById('client-name').value = name;
+        document.getElementById('client-phone').value = phone;
+        clientSearch.value = name;
+        autocompleteList.classList.add('hidden');
+    };
 });
