@@ -41,7 +41,9 @@ body {
     display: flex !important;
 }
 
-/* LOGIN SECTION */
+/* ========================================== */
+/* LOGIN SECTION                              */
+/* ========================================== */
 .hero-login {
     flex: 1;
     display: flex;
@@ -84,7 +86,9 @@ body {
     cursor: pointer;
 }
 
-/* HEADER E GRADE SEMANAL */
+/* ========================================== */
+/* HEADER DA AGENDA E MÊS                     */
+/* ========================================== */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -109,7 +113,6 @@ body {
     cursor: pointer;
 }
 
-/* ESTILO DO MÊS ADICIONADO AQUI */
 .month-display {
     color: var(--gold);
     font-size: 14px;
@@ -118,15 +121,30 @@ body {
     letter-spacing: 1px;
 }
 
-.header-grid-wrapper,
-.calendar-grid {
+/* ========================================== */
+/* GRADE SEMANAL (CABEÇALHO E CORPO)          */
+/* ========================================== */
+.header-grid-wrapper {
     display: grid;
     grid-template-columns: 45px repeat(7, 1fr);
     width: 100%;
 }
 
+/* FIX DO 06:00: Padding top para não cortar a hora e bottom para não grudar no rodapé */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: 45px repeat(7, 1fr);
+    width: 100%;
+    padding-top: 15px;
+    padding-bottom: 40px;
+}
+
 .week-days-row {
     display: contents;
+}
+
+.week-days-row .day-label:first-child {
+    grid-column-start: 2;
 }
 
 .day-label {
@@ -200,7 +218,9 @@ body {
     pointer-events: auto;
 }
 
-/* MODAL PREMIUM */
+/* ========================================== */
+/* MODAL PREMIUM RESTAURADA                   */
+/* ========================================== */
 .modal {
     position: fixed;
     inset: 0;
@@ -358,4 +378,5 @@ body {
     border-bottom: 1px solid #222;
     font-size: 14px;
     color: #fff;
+    cursor: pointer;
 }
