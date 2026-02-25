@@ -18,8 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     const formatPhoneForInput = (phoneRaw) => {
         if (!phoneRaw) return "";
-        let cleaned = phoneRaw.replace(/\D/g, ''); // Remove tudo que não é número
-        // Se começar com 55 e tiver tamanho de DDD + Número (ex: 5511999998888)
+        let cleaned = phoneRaw.replace(/\D/g, '');
         if (cleaned.startsWith('55') && cleaned.length >= 12) {
             cleaned = cleaned.substring(2);
         }
@@ -112,9 +111,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 7) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
+
+                    // Lógica para exibir apenas o nome na grade, limpando o número ou o "Corte:" antigo
+                    let displayName = ev.summary;
+                    if (displayName.startsWith("Corte: ")) {
+                        displayName = displayName.replace("Corte: ", "");
+                    } else if (displayName.includes(" - ")) {
+                        displayName = displayName.split(" - ")[0];
+                    }
+
                     gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; font-size:9px; color:#fff; font-weight:600; overflow:hidden; z-index:2; pointer-events:auto;" 
                                      onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}')">
-                                     ${ev.summary.replace("Corte: ", "")}
+                                     ${displayName}
                                  </div>`;
                 });
                 gridHTML += `</div>`;
@@ -129,6 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
+
+        // FIX: Limpa a lista do auto-complete visualmente e destrói o HTML antigo
+        const autocompleteList = document.getElementById('autocomplete-list');
+        if (autocompleteList) {
+            autocompleteList.innerHTML = "";
+            autocompleteList.classList.add('hidden');
+        }
+
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
         document.getElementById('btn-delete-event').classList.add('hidden');
@@ -138,14 +154,29 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editBooking = (id, title, desc, date, time) => {
         currentEventId = id; selectedDate = date;
         timeInput.value = time;
-        const name = title.replace("Corte: ", "");
+
+        // Separa o nome caso o título venha como "Nome - Número" ou o formato antigo "Corte: Nome"
+        let name = title;
+        if (title.startsWith("Corte: ")) {
+            name = title.replace("Corte: ", "");
+        } else if (title.includes(" - ")) {
+            name = title.split(" - ")[0];
+        }
+
         document.getElementById('client-name').value = name;
 
-        // Aplica a formatação limpa no telefone que veio da descrição
         const rawPhone = desc.replace("Tel: ", "");
         document.getElementById('client-phone').value = formatPhoneForInput(rawPhone);
 
         document.getElementById('client-search').value = name;
+
+        // FIX: Limpa a lista do auto-complete visualmente e destrói o HTML antigo
+        const autocompleteList = document.getElementById('autocomplete-list');
+        if (autocompleteList) {
+            autocompleteList.innerHTML = "";
+            autocompleteList.classList.add('hidden');
+        }
+
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
         document.getElementById('btn-delete-event').classList.remove('hidden');
@@ -160,8 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
             await GoogleAPI.createEvent({
-                summary: `Corte: ${name}`,
-                description: `Tel: ${phone}`,
+                // FIX: Salva com o formato Nome - Telefone no Calendário
+                summary: `${name} - ${phone}`,
+                description: `Tel: ${phone}`, // Mantido para o código conseguir ler depois na edição
                 start: { dateTime: Utils.toISOWithOffset(selectedDate, timeVal), timeZone: 'America/Sao_Paulo' },
                 end: { dateTime: Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
             });
@@ -178,13 +210,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const autocompleteList = document.getElementById('autocomplete-list');
 
     document.addEventListener('click', (e) => {
-        if (e.target.id !== 'client-search') autocompleteList.classList.add('hidden');
+        if (e.target.id !== 'client-search') {
+            autocompleteList.classList.add('hidden');
+            autocompleteList.innerHTML = ""; // Limpa a sujeira
+        }
     });
 
     clientSearch.addEventListener('input', async (e) => {
         const q = e.target.value.toLowerCase();
         if (q.length < 2) {
             autocompleteList.classList.add('hidden');
+            autocompleteList.innerHTML = ""; // Limpa a sujeira
             return;
         }
 
@@ -225,16 +261,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.selectClient = (name, phone) => {
         document.getElementById('client-name').value = name;
-
-        // Aplica a formatação limpa no telefone vindo do Google Contacts
         document.getElementById('client-phone').value = formatPhoneForInput(phone);
-
         clientSearch.value = name;
         autocompleteList.classList.add('hidden');
+        autocompleteList.innerHTML = ""; // Esvazia o histórico ao selecionar
     };
 
     // ==========================================
-    // LOGIN SEM RELOAD (MANTÉM O TOKEN SALVO)
+    // LOGIN E PERSISTÊNCIA
     // ==========================================
     document.addEventListener('google-auth-success', async () => {
         try {
@@ -264,17 +298,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    document.getElementById('btn-cancel-form').onclick = () => modalForm.classList.add('hidden');
+    document.getElementById('btn-cancel-form').onclick = () => {
+        modalForm.classList.add('hidden');
+        if (autocompleteList) autocompleteList.innerHTML = "";
+    };
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
     document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
 
-    // ==========================================
-    // ABRIR WHATSAPP (CORRIGIDO PARA PWA NO IPHONE)
-    // ==========================================
     document.getElementById('btn-open-whatsapp').onclick = () => {
         document.getElementById('modal-success').classList.add('hidden');
         renderWeek();
-        // Substitui o window.open problemático por location.href
         window.location.href = urlWhatsAppFinal;
     };
 
