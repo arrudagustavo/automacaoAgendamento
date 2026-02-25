@@ -6,33 +6,23 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vitão Booking</title>
-
     <link rel="apple-touch-icon" href="VitaoSolido.jpg">
-    <link rel="apple-touch-icon-precomposed" href="VitaoSolido.jpg">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
     <div id="app" class="app-container">
-
         <section id="login-section" class="section active">
             <div class="hero">
-                <img src="LogoVitao.png" alt="Logo Vitão" class="main-logo-login">
+                <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
                 <h1 class="brand-title">Vitão Booking</h1>
-                <p class="brand-subtitle">Gestão de Agenda</p>
             </div>
-            <div class="login-controls" style="position: relative; z-index: 100;">
-                <button id="btn-auth-manual" class="btn-login-premium" type="button" style="cursor: pointer;">
+            <div class="login-controls">
+                <button id="btn-auth-manual" class="btn-login-premium">
                     <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="G" width="20">
                     <span>Entrar com Google</span>
                 </button>
@@ -42,64 +32,54 @@
         <section id="scheduling-section" class="section">
             <header class="premium-header">
                 <div class="header-content">
-                    <div class="user-info">
-                        <img src="LogoVitao.png" alt="Logo" class="mini-logo">
-                        <span id="user-name">...</span>
-                    </div>
+                    <span id="user-name">...</span>
                     <button id="btn-logout" class="btn-logout">Sair</button>
                 </div>
+                <div id="week-header" class="week-days-row"></div>
             </header>
 
-            <main class="main-scroll">
-                <div class="input-card"><label>DATA DA AGENDA</label><input type="date" id="schedule-date"></div>
-                <div id="agenda-grid" class="agenda-timeline"></div>
-            </main>
-
-            <div id="modal-form" class="modal hidden">
-                <div class="dark-card">
-                    <h3 id="selected-slot-title" style="color:var(--gold); margin-bottom:15px;">Novo Agendamento</h3>
-
-                    <div class="input-card">
-                        <label>BUSCAR CLIENTE</label>
-                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
-                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
-                    </div>
-
-                    <div class="row grid-2">
-                        <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
-                        <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
-                    </div>
-
-                    <div class="input-card">
-                        <label>DURAÇÃO</label>
-                        <select id="schedule-duration">
-                            <option value="30">30 min</option>
-                            <option value="60" selected>1 hora</option>
-                            <option value="90">1h 30m</option>
-                        </select>
-                    </div>
-
-                    <div class="row grid-2" style="margin-top:15px;">
-                        <button id="btn-cancel-form" class="btn-secondary">Voltar</button>
-                        <button id="btn-schedule" class="btn-action-gold">Salvar</button>
-                    </div>
-                    <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
+            <main class="calendar-scroll">
+                <div class="week-grid">
+                    <div id="time-column" class="time-column"></div>
+                    <div id="days-wrapper" class="days-wrapper"></div>
                 </div>
-            </div>
+            </main>
         </section>
 
-        <div id="modal-success" class="modal hidden">
+        <div id="modal-form" class="modal hidden">
             <div class="dark-card">
-                <div style="font-size: 50px;">✅</div>
-                <h3 style="color: var(--gold); margin: 15px 0;">Agendado!</h3>
-                <button id="btn-open-whatsapp" class="btn-action-gold">WhatsApp</button>
-                <button id="btn-success-close"
-                    style="background:none; border:none; color:#aaa; font-size:12px;">Fechar</button>
+                <h3 id="selected-slot-title" style="color:var(--gold);">Agendar</h3>
+                <p id="selected-full-date" style="font-size:11px; margin-bottom:15px; color:#888;"></p>
+                <div class="input-card"><label>BUSCAR CLIENTE</label>
+                    <input type="text" id="client-search" placeholder="Nome ou tel..." autocomplete="off">
+                    <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+                </div>
+                <div class="row grid-2">
+                    <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
+                    <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
+                </div>
+                <div class="input-card">
+                    <label>DURAÇÃO</label>
+                    <select id="schedule-duration">
+                        <option value="30">30 min</option>
+                        <option value="60" selected>1 hora</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <button id="btn-cancel-form" class="btn-secondary">Voltar</button>
+                    <button id="btn-schedule" class="btn-action-gold">Salvar</button>
+                </div>
+                <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR</button>
             </div>
         </div>
-        <div id="toast" class="toast-premium hidden"></div>
+        <div id="modal-success" class="modal hidden">
+            <div class="dark-card">
+                <h3>✅ Sucesso!</h3>
+                <button id="btn-open-whatsapp" class="btn-action-gold">WhatsApp</button>
+                <button id="btn-success-close">Fechar</button>
+            </div>
+        </div>
     </div>
-
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>

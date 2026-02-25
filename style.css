@@ -1,7 +1,7 @@
 :root {
     --gold: #C6A85B;
-    --red: #ff4444;
     --border: #222;
+    --bg: #000;
 }
 
 * {
@@ -12,13 +12,13 @@
 }
 
 body {
-    background: #000;
+    background: var(--bg);
     color: #fff;
     font-family: 'Inter', sans-serif;
     height: 100dvh;
-    width: 100vw;
     overflow: hidden;
     position: fixed;
+    width: 100%;
 }
 
 .app-container {
@@ -33,47 +33,13 @@ body {
     display: none;
     height: 100%;
     flex-direction: column;
-    position: relative;
 }
 
 .section.active {
     display: flex !important;
 }
 
-/* AJUSTE LOGIN: Centraliza a logo e joga o botão para baixo */
-.hero {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.main-logo-login {
-    width: 220px;
-    margin-bottom: 20px;
-}
-
-.brand-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 30px;
-    color: var(--gold);
-}
-
-.brand-subtitle {
-    color: #888;
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-.login-controls {
-    padding: 0 24px 140px 24px;
-}
-
-/* 2 dedos de margem no iPhone */
-
-/* HEADER & NOTCH */
+/* HEADER E DIAS */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -83,116 +49,99 @@ body {
 .header-content {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-}
-
-.mini-logo {
-    width: 35px;
-    height: 35px;
-    margin-right: 10px;
-}
-
-.user-info {
-    display: flex;
+    padding: 10px 15px;
     align-items: center;
 }
 
-/* AGENDA */
-.main-scroll {
+.week-days-row {
+    display: grid;
+    grid-template-columns: 45px repeat(7, 1fr);
+    border-top: 1px solid #111;
+    padding: 10px 0;
+    width: 150%;
+}
+
+.day-label {
+    text-align: center;
+    font-size: 9px;
+    color: #666;
+    font-weight: 800;
+}
+
+.day-label.today {
+    color: var(--gold);
+}
+
+.day-num {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+    margin-top: 2px;
+}
+
+/* GRADE SCROLL */
+.calendar-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
-    padding-bottom: 100px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.agenda-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 15px;
+.week-grid {
+    display: grid;
+    grid-template-columns: 45px repeat(7, 1fr);
+    width: 150%;
+    position: relative;
 }
 
-.slot {
-    display: flex;
-    padding: 16px;
-    border-radius: 12px;
-    background: #111;
-    border: 1px solid #222;
-    cursor: pointer;
+.time-column {
+    border-right: 1px solid #111;
 }
 
-.slot.vago {
-    border-left: 4px solid #333;
-}
-
-.slot.ocupado {
-    border-left: 4px solid var(--red);
-    background: rgba(255, 68, 68, 0.08);
-}
-
-.slot .time {
-    font-weight: 800;
-    color: var(--gold);
-    width: 65px;
-}
-
-/* BOTÕES E INPUTS */
-.btn-login-premium {
-    width: 100%;
-    padding: 18px;
-    border-radius: 50px;
-    background: #FFF;
-    color: #000;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    border: none;
-    font-size: 16px;
-}
-
-.btn-action-gold {
-    width: 100%;
-    padding: 18px;
-    border-radius: 12px;
-    background: var(--gold);
-    color: #000;
-    font-weight: 800;
-    border: none;
-    margin-top: 10px;
-}
-
-.input-card {
-    background: #1a1a1a;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #333;
-    margin-bottom: 10px;
-}
-
-.input-card label {
-    display: block;
+.time-cell {
+    height: 60px;
     font-size: 10px;
-    color: var(--gold);
-    font-weight: 800;
-    margin-bottom: 4px;
+    color: #444;
+    text-align: right;
+    padding-right: 5px;
+    transform: translateY(-7px);
 }
 
-.input-card input {
-    background: none;
-    border: none;
+.days-wrapper {
+    display: contents;
+}
+
+.day-col {
+    border-right: 1px solid #111;
+    position: relative;
+}
+
+.slot-cell {
+    height: 60px;
+    border-bottom: 1px solid #0a0a0a;
+}
+
+/* BLOCO DE EVENTO (ESTILO GOOGLE CALENDAR) */
+.event-block {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    background: rgba(198, 168, 91, 0.25);
+    border-left: 3px solid var(--gold);
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 9px;
     color: #fff;
-    width: 100%;
-    outline: none;
-    font-size: 16px;
+    font-weight: 600;
+    overflow: hidden;
+    z-index: 5;
 }
 
+/* MODAL E OUTROS */
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -207,42 +156,40 @@ body {
     border-radius: 20px;
     width: 100%;
     max-width: 360px;
-    text-align: center;
 }
 
-.btn-delete {
-    width: 100%;
-    padding: 12px;
-    color: var(--red);
-    background: none;
-    border: 1px solid var(--red);
+.input-card {
+    background: #1a1a1a;
+    padding: 10px;
     border-radius: 10px;
-    margin-top: 15px;
-    font-weight: 800;
+    border: 1px solid #333;
+    margin-bottom: 8px;
 }
 
-.grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+.input-card label {
+    font-size: 9px;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.btn-action-gold {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 800;
+    width: 100%;
+}
+
+.btn-secondary {
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
 }
 
 .hidden {
     display: none !important;
-}
-
-.autocomplete-list {
-    background: #222;
-    border-radius: 8px;
-    list-style: none;
-    margin-top: 5px;
-    max-height: 150px;
-    overflow-y: auto;
-    text-align: left;
-}
-
-.autocomplete-list li {
-    padding: 12px;
-    border-bottom: 1px solid #333;
-    font-size: 13px;
 }
