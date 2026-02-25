@@ -13,9 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
-    // ==========================================
-    // INICIALIZAÇÃO SEGURA DO GOOGLE API
-    // ==========================================
     const initApp = () => {
         if (typeof google !== 'undefined' && typeof GoogleAPI !== 'undefined') {
             GoogleAPI.init();
@@ -28,25 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAuth) {
         btnAuth.addEventListener('click', (e) => {
             e.preventDefault();
-            if (GoogleAPI.client) {
-                GoogleAPI.requestToken();
-            } else {
-                alert("Aguarde um momento, conectando ao Google...");
-            }
+            if (GoogleAPI.client) GoogleAPI.requestToken();
+            else alert("Aguarde, conectando ao Google...");
         });
     }
 
-    // ==========================================
-    // LÓGICA DE DESLIZE (SWIPE) MANTIDA
-    // ==========================================
+    // LÓGICA DE SWIPE PARA MUDAR A SEMANA
     let touchStartX = 0;
     let touchEndX = 0;
-
     if (calendarViewport) {
-        calendarViewport.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, { passive: true });
-
+        calendarViewport.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, { passive: true });
         calendarViewport.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
@@ -56,20 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSwipe() {
         const swipeThreshold = 50;
         const diff = touchStartX - touchEndX;
-
         if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-            } else {
-                currentWeekStart.setDate(currentWeekStart.getDate() - 7);
-            }
+            if (diff > 0) currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            else currentWeekStart.setDate(currentWeekStart.getDate() - 7);
             renderWeek();
         }
     }
 
-    // ==========================================
-    // RENDERIZAÇÃO DA GRADE (07h às 22h)
-    // ==========================================
     for (let i = 7; i <= 22; i++) {
         const div = document.createElement('div');
         div.className = 'time-marker';
@@ -81,8 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const start = new Date(currentWeekStart);
 
-        let headHTML = "";
+        // ATUALIZA O MÊS NA TELA
+        const monthStr = start.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        document.getElementById('current-month').textContent = monthStr;
+
+        // FIX: DIV VAZIA PARA PULAR A COLUNA DE HORAS E ALINHAR OS DIAS
+        let headHTML = "<div></div>";
         const weekDates = [];
+
         for (let i = 0; i < 7; i++) {
             const d = new Date(start); d.setDate(start.getDate() + i);
             weekDates.push(d);
@@ -123,9 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error("Erro ao carregar a agenda:", e); }
     };
 
-    // ==========================================
-    // FUNÇÕES DA MODAL
-    // ==========================================
     window.openBookingForm = (date, time) => {
         selectedDate = date; currentEventId = null;
         timeInput.value = time;
@@ -170,9 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("Erro ao salvar."); }
     };
 
-    // ==========================================
-    // PERSISTÊNCIA, LOGIN E OUTROS CLIQUES
-    // ==========================================
     const saved = localStorage.getItem('vitao_user');
     if (saved && saved !== "undefined") {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
@@ -195,36 +176,39 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
 
     // ==========================================
-    // AUTO-COMPLETE BLINDADO E CORRIGIDO
+    // AUTO-COMPLETE BLINDADO
     // ==========================================
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
-    // Esconde a lista ao clicar fora
     document.addEventListener('click', (e) => {
-        if (e.target.id !== 'client-search') {
-            autocompleteList.classList.add('hidden');
-        }
+        if (e.target.id !== 'client-search') autocompleteList.classList.add('hidden');
     });
 
-    clientSearch.addEventListener('input', (e) => {
+    clientSearch.addEventListener('input', async (e) => {
         const q = e.target.value.toLowerCase();
         if (q.length < 2) {
             autocompleteList.classList.add('hidden');
             return;
         }
 
+        // Tenta buscar os contatos caso a lista esteja vazia
+        if (typeof GoogleAPI !== 'undefined' && (!GoogleAPI.contacts || GoogleAPI.contacts.length === 0)) {
+            try { await GoogleAPI.fetchContacts(); } catch (err) { console.log("Aguardando token..."); }
+        }
+
         const results = [];
-        if (typeof GoogleAPI !== 'undefined' && GoogleAPI.contacts && GoogleAPI.contacts.length > 0) {
+        if (GoogleAPI.contacts && GoogleAPI.contacts.length > 0) {
             GoogleAPI.contacts.forEach(c => {
-                const nameMatch = c.name.toLowerCase().includes(q);
+                // Checagens de segurança para contatos salvos sem nome ou telefone
+                const nameMatch = c.name && c.name.toLowerCase().includes(q);
                 const phoneMatch = c.phones && c.phones.some(p => p.includes(q));
 
                 if (nameMatch || phoneMatch) {
                     if (c.phones && c.phones.length > 0) {
                         c.phones.forEach(p => results.push({ name: c.name, phone: p }));
                     } else {
-                        results.push({ name: c.name, phone: '' }); // Permite listar quem não tem número salvo
+                        results.push({ name: c.name, phone: '' });
                     }
                 }
             });
@@ -242,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.selectClient = (name, phone) => {
         document.getElementById('client-name').value = name;
         document.getElementById('client-phone').value = phone;
-        clientSearch.value = name;
+        clientSearch.value = name; // Mantém o que foi pesquisado na barra
         autocompleteList.classList.add('hidden');
     };
 });

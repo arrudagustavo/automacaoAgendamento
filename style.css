@@ -41,9 +41,7 @@ body {
     display: flex !important;
 }
 
-/* ========================================== */
-/* LOGIN SECTION (INTOCÁVEL)                  */
-/* ========================================== */
+/* LOGIN SECTION */
 .hero-login {
     flex: 1;
     display: flex;
@@ -86,9 +84,7 @@ body {
     cursor: pointer;
 }
 
-/* ========================================== */
-/* HEADER E GRADE SEMANAL (7 DIAS FIXOS)      */
-/* ========================================== */
+/* HEADER E GRADE SEMANAL */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -111,6 +107,15 @@ body {
     font-size: 11px;
     font-weight: 800;
     cursor: pointer;
+}
+
+/* ESTILO DO MÊS ADICIONADO AQUI */
+.month-display {
+    color: var(--gold);
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .header-grid-wrapper,
@@ -195,9 +200,7 @@ body {
     pointer-events: auto;
 }
 
-/* ========================================== */
-/* MODAL PREMIUM RESTAURADA (ESPAÇOSA/TOP)    */
-/* ========================================== */
+/* MODAL PREMIUM */
 .modal {
     position: fixed;
     inset: 0;
@@ -269,7 +272,6 @@ body {
     font-weight: 600;
 }
 
-/* SELECT CORRIGIDO - FUNDO ESCURO */
 #schedule-duration {
     background-color: #1a1a1a !important;
     color: #fff !important;
