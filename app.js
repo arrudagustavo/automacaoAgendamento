@@ -63,8 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // GERA HORÁRIOS DA GRADE
-    for (let i = 7; i <= 22; i++) {
+    // ==========================================
+    // GERA HORÁRIOS DA GRADE (AGORA DAS 06:00 ÀS 23:00)
+    // ==========================================
+    for (let i = 6; i <= 23; i++) {
         const div = document.createElement('div');
         div.className = 'time-marker';
         div.textContent = i.toString().padStart(2, '0') + ':00';
@@ -102,17 +104,20 @@ document.addEventListener('DOMContentLoaded', () => {
             weekDates.forEach(date => {
                 const dateISO = date.toISOString().split('T')[0];
                 gridHTML += `<div class="day-strip">`;
-                for (let h = 7; h <= 22; h++) {
+
+                // GERA SLOTS CLICÁVEIS DAS 06:00 ÀS 23:00
+                for (let h = 6; h <= 23; h++) {
                     const t = h.toString().padStart(2, '0') + ':00';
                     gridHTML += `<div class="slot-trigger" onclick="window.openBookingForm('${dateISO}','${t}')"></div>`;
                 }
 
                 events.filter(e => (e.start.dateTime || e.start.date).startsWith(dateISO)).forEach(ev => {
                     const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
-                    const top = (s.getHours() + s.getMinutes() / 60 - 7) * 60;
+
+                    // CÁLCULO ATUALIZADO (Subtrai 6 para alinhar o bloquinho com o topo das 06:00)
+                    const top = (s.getHours() + s.getMinutes() / 60 - 6) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
 
-                    // Lógica para exibir apenas o nome na grade, limpando o número ou o "Corte:" antigo
                     let displayName = ev.summary;
                     if (displayName.startsWith("Corte: ")) {
                         displayName = displayName.replace("Corte: ", "");
@@ -138,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
 
-        // FIX: Limpa a lista do auto-complete visualmente e destrói o HTML antigo
         const autocompleteList = document.getElementById('autocomplete-list');
         if (autocompleteList) {
             autocompleteList.innerHTML = "";
@@ -155,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentEventId = id; selectedDate = date;
         timeInput.value = time;
 
-        // Separa o nome caso o título venha como "Nome - Número" ou o formato antigo "Corte: Nome"
         let name = title;
         if (title.startsWith("Corte: ")) {
             name = title.replace("Corte: ", "");
@@ -170,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('client-search').value = name;
 
-        // FIX: Limpa a lista do auto-complete visualmente e destrói o HTML antigo
         const autocompleteList = document.getElementById('autocomplete-list');
         if (autocompleteList) {
             autocompleteList.innerHTML = "";
@@ -191,9 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
             await GoogleAPI.createEvent({
-                // FIX: Salva com o formato Nome - Telefone no Calendário
                 summary: `${name} - ${phone}`,
-                description: `Tel: ${phone}`, // Mantido para o código conseguir ler depois na edição
+                description: `Tel: ${phone}`,
                 start: { dateTime: Utils.toISOWithOffset(selectedDate, timeVal), timeZone: 'America/Sao_Paulo' },
                 end: { dateTime: Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
             });
@@ -212,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         if (e.target.id !== 'client-search') {
             autocompleteList.classList.add('hidden');
-            autocompleteList.innerHTML = ""; // Limpa a sujeira
+            autocompleteList.innerHTML = "";
         }
     });
 
@@ -220,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = e.target.value.toLowerCase();
         if (q.length < 2) {
             autocompleteList.classList.add('hidden');
-            autocompleteList.innerHTML = ""; // Limpa a sujeira
+            autocompleteList.innerHTML = "";
             return;
         }
 
@@ -264,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-phone').value = formatPhoneForInput(phone);
         clientSearch.value = name;
         autocompleteList.classList.add('hidden');
-        autocompleteList.innerHTML = ""; // Esvazia o histórico ao selecionar
+        autocompleteList.innerHTML = "";
     };
 
     // ==========================================
