@@ -3,19 +3,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const weekHeader = document.getElementById('week-header');
     const daysWrapper = document.getElementById('days-wrapper');
     const timeColumn = document.getElementById('time-column');
+    const btnAuth = document.getElementById('btn-auth-manual');
 
     GoogleAPI.init();
 
-    // 1. Gera as horas (08h às 21h)
+    // 1. Inicia Horas (08h às 21h)
     const hours = [];
-    for (let i = 8; i <= 21; i++) hours.push(`${i.toString().padStart(2, '0')}:00`);
-    timeColumn.innerHTML = hours.map(h => `<div class="time-cell">${h}</div>`).join('');
+    for (let i = 8; i <= 21; i++) {
+        const h = i.toString().padStart(2, '0') + ':00';
+        hours.push(h);
+        const div = document.createElement('div');
+        div.className = 'time-marker';
+        div.textContent = h;
+        timeColumn.appendChild(div);
+    }
 
-    // 2. Renderiza a semana
+    // 2. Renderiza Grade Semanal
     const renderWeek = async () => {
         const now = new Date();
         const start = new Date(now);
-        start.setDate(now.getDate() - now.getDay()); // Inicia no Domingo
+        start.setDate(now.getDate() - now.getDay()); // Começa no Domingo
 
         let headHTML = '<div style="width:45px"></div>';
         const weekDates = [];
@@ -31,19 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
         weekHeader.innerHTML = headHTML;
 
         try {
-            const events = await GoogleAPI.listEventsRange(start.toISOString(), new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString());
+            const timeMin = start.toISOString();
+            const timeMax = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+            const events = await GoogleAPI.listEventsRange(timeMin, timeMax);
+
             let gridHTML = "";
             weekDates.forEach(date => {
                 const dateISO = date.toISOString().split('T')[0];
-                gridHTML += `<div class="day-col">`;
-                hours.forEach(h => gridHTML += `<div class="slot-cell" onclick="window.openBookingForm('${dateISO}','${h}')"></div>`);
+                gridHTML += `<div class="day-strip">`;
+                hours.forEach(h => gridHTML += `<div class="slot-trigger" onclick="window.openBookingForm('${dateISO}','${h}')"></div>`);
 
-                // Filtra e posiciona eventos
                 events.filter(e => (e.start.dateTime || e.start.date).startsWith(dateISO)).forEach(ev => {
                     const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 8) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
-                    gridHTML += `<div class="event-block" style="top:${top}px; height:${height}px" 
+                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px" 
                                      onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}')">
                                      ${ev.summary.replace("Corte: ", "")}
                                  </div>`;
@@ -51,9 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { daysWrapper.innerHTML = "Erro ao carregar."; }
+        } catch (e) { daysWrapper.innerHTML = "<p>Erro ao carregar agenda.</p>"; }
     };
 
+    // BOTÃO LOGIN
+    btnAuth.onclick = (e) => {
+        e.preventDefault();
+        GoogleAPI.requestToken();
+    };
+
+    document.addEventListener('google-auth-success', async () => {
+        const user = await GoogleAPI.getProfile();
+        localStorage.setItem('vitao_user', JSON.stringify(user));
+        location.reload();
+    });
+
+    // NAVEGAÇÃO INTERNA
     window.openBookingForm = (date, time) => {
         selectedDate = date; selectedTime = time; currentEventId = null;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
@@ -69,32 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
-    // BOTÃO SALVAR
-    document.getElementById('btn-schedule').onclick = async () => {
-        const name = document.getElementById('client-name').value;
-        const phone = document.getElementById('client-phone').value;
-        if (!name) return;
-        if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
-        await GoogleAPI.createEvent({
-            summary: `Corte: ${name}`,
-            description: `Tel: ${phone}`,
-            start: { dateTime: Utils.toISOWithOffset(selectedDate, selectedTime), timeZone: 'America/Sao_Paulo' },
-            end: { dateTime: Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(selectedTime, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
-        });
-        location.reload();
-    };
-
-    // Sessão
+    // Sessão Ativa
     const saved = localStorage.getItem('vitao_user');
     if (saved) {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
         document.getElementById('login-section').classList.remove('active');
         document.getElementById('scheduling-section').classList.add('active');
-        renderWeek(); GoogleAPI.fetchContacts();
+        renderWeek();
+        GoogleAPI.fetchContacts();
     }
-    document.getElementById('btn-auth-manual').onclick = () => GoogleAPI.requestToken();
-    document.addEventListener('google-auth-success', () => location.reload());
-    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
+
     document.getElementById('btn-cancel-form').onclick = () => document.getElementById('modal-form').classList.add('hidden');
-    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir?")) { await GoogleAPI.deleteEvent(currentEventId); location.reload(); } };
+    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
 });

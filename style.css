@@ -1,7 +1,7 @@
 :root {
     --gold: #C6A85B;
-    --border: #222;
     --bg: #000;
+    --border: #222;
 }
 
 * {
@@ -12,26 +12,26 @@
 }
 
 body {
-    background: var(--bg);
+    background-color: var(--bg);
     color: #fff;
     font-family: 'Inter', sans-serif;
     height: 100dvh;
+    width: 100vw;
     overflow: hidden;
     position: fixed;
-    width: 100%;
 }
 
 .app-container {
     max-width: 440px;
     margin: 0 auto;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    position: relative;
 }
 
 .section {
     display: none;
     height: 100%;
+    width: 100%;
     flex-direction: column;
 }
 
@@ -39,14 +39,45 @@ body {
     display: flex !important;
 }
 
-/* HEADER E DIAS */
+/* LOGIN CORRIGIDO */
+.hero-login {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.main-logo-login {
+    width: 220px;
+    margin-bottom: 20px;
+}
+
+.brand-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--gold);
+}
+
+.brand-subtitle {
+    color: #888;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.login-action {
+    padding: 0 24px 140px 24px;
+}
+
+/* CABEÇALHO AGENDA */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
     border-bottom: 1px solid var(--border);
 }
 
-.header-content {
+.header-top {
     display: flex;
     justify-content: space-between;
     padding: 10px 15px;
@@ -56,9 +87,8 @@ body {
 .week-days-row {
     display: grid;
     grid-template-columns: 45px repeat(7, 1fr);
-    border-top: 1px solid #111;
     padding: 10px 0;
-    width: 150%;
+    width: 180%;
 }
 
 .day-label {
@@ -79,26 +109,25 @@ body {
     margin-top: 2px;
 }
 
-/* GRADE SCROLL */
-.calendar-scroll {
+/* GRADE DE SCROLL SEMANAL */
+.calendar-viewport {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: auto;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-.week-grid {
+.calendar-grid {
     display: grid;
     grid-template-columns: 45px repeat(7, 1fr);
-    width: 150%;
+    width: 180%;
     position: relative;
 }
 
-.time-column {
+.time-labels {
     border-right: 1px solid #111;
 }
 
-.time-cell {
+.time-marker {
     height: 60px;
     font-size: 10px;
     color: #444;
@@ -107,22 +136,24 @@ body {
     transform: translateY(-7px);
 }
 
-.days-wrapper {
+.days-columns {
     display: contents;
 }
 
-.day-col {
+.day-strip {
     border-right: 1px solid #111;
     position: relative;
+    background-image: linear-gradient(#111 1px, transparent 1px);
+    background-size: 100% 60px;
 }
 
-.slot-cell {
+.slot-trigger {
     height: 60px;
-    border-bottom: 1px solid #0a0a0a;
+    width: 100%;
 }
 
-/* BLOCO DE EVENTO (ESTILO GOOGLE CALENDAR) */
-.event-block {
+/* EVENTOS (ESTILO GOOGLE CALENDAR) */
+.event-card {
     position: absolute;
     left: 2px;
     right: 2px;
@@ -137,11 +168,11 @@ body {
     z-index: 5;
 }
 
-/* MODAL E OUTROS */
+/* MODAIS */
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -158,6 +189,33 @@ body {
     max-width: 360px;
 }
 
+.btn-login-premium {
+    width: 100%;
+    padding: 18px;
+    border-radius: 50px;
+    background: #FFF;
+    color: #000;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-action-gold {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 800;
+    width: 100%;
+    margin-top: 10px;
+}
+
 .input-card {
     background: #1a1a1a;
     padding: 10px;
@@ -171,23 +229,15 @@ body {
     color: var(--gold);
     display: block;
     margin-bottom: 2px;
-}
-
-.btn-action-gold {
-    background: var(--gold);
-    color: #000;
-    border: none;
-    padding: 15px;
-    border-radius: 10px;
     font-weight: 800;
-    width: 100%;
 }
 
-.btn-secondary {
-    background: #333;
-    color: #fff;
+.input-card input {
+    background: none;
     border: none;
-    border-radius: 10px;
+    color: #fff;
+    width: 100%;
+    outline: none;
 }
 
 .hidden {
