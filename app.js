@@ -10,21 +10,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalForm = document.getElementById('modal-form');
     const btnAuth = document.getElementById('btn-auth-manual');
 
-    // Inicializa Google API
-    if (typeof GoogleAPI !== 'undefined') {
-        GoogleAPI.init();
-    }
+    // 1. INICIALIZAÇÃO DA API
+    const initApp = () => {
+        if (typeof google !== 'undefined' && typeof GoogleAPI !== 'undefined') {
+            GoogleAPI.init();
+            console.log("Google API Pronta.");
+        } else {
+            setTimeout(initApp, 300);
+        }
+    };
+    initApp();
 
-    // --- FIX LOGIN: Clique com Log para Debug ---
+    // 2. FUNÇÃO DE LOGIN (BLINDADA)
     if (btnAuth) {
         btnAuth.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log("Botão entrar com Google clicado.");
-            GoogleAPI.requestToken();
+            console.log("Solicitando login...");
+            if (GoogleAPI.accessToken) {
+                // Se já tem token, apenas pula para a agenda
+                document.dispatchEvent(new CustomEvent('google-auth-success'));
+            } else {
+                GoogleAPI.requestToken();
+            }
         });
     }
 
-    // --- LOGICA DE SESSÃO PERSISTENTE ---
+    // 3. PERSISTÊNCIA DE SESSÃO
     const savedUser = localStorage.getItem('vitao_user');
     if (savedUser) {
         document.getElementById('user-name').textContent = JSON.parse(savedUser).name;
@@ -32,19 +43,25 @@ document.addEventListener('DOMContentLoaded', () => {
         schedulingSection.classList.add('active');
         dateInput.value = new Date().toISOString().split('T')[0];
         renderTimeline();
-        GoogleAPI.fetchContacts();
+        // Carrega contatos em segundo plano
+        setTimeout(() => GoogleAPI.fetchContacts(), 1000);
     }
 
     document.addEventListener('google-auth-success', async () => {
         const user = await GoogleAPI.getProfile();
         if (user) localStorage.setItem('vitao_user', JSON.stringify(user));
-        location.reload();
+        loginSection.classList.remove('active');
+        schedulingSection.classList.add('active');
+        dateInput.value = new Date().toISOString().split('T')[0];
+        renderTimeline();
+        await GoogleAPI.fetchContacts();
     });
 
-    // --- LOGICA DA AGENDA (CRUD) ---
+    // 4. LÓGICA DA GRADE DE HORÁRIOS (REVISADA)
     async function renderTimeline() {
         if (!dateInput.value) return;
-        agendaGrid.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Buscando agenda...</p>';
+        agendaGrid.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Buscando horários...</p>';
+
         try {
             const occupiedEvents = await GoogleAPI.listEvents(dateInput.value);
             const slots = [];
@@ -61,19 +78,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (event) {
                     const clientName = event.summary.replace("Corte: ", "");
-                    return `<div class="slot ocupado" onclick="editBooking('${slotTime}', '${event.id}', '${clientName}', '${event.description || ""}')">
+                    return `<div class="slot ocupado" onclick="window.editBooking('${slotTime}', '${event.id}', '${clientName}', '${event.description || ""}')">
                                 <div class="time">${slotTime}</div>
                                 <div class="info">${event.summary}</div>
                             </div>`;
                 }
-                return `<div class="slot vago" onclick="openBookingForm('${slotTime}')">
+                return `<div class="slot vago" onclick="window.openBookingForm('${slotTime}')">
                             <div class="time">${slotTime}</div>
                             <div class="info">Disponível</div>
                         </div>`;
             }).join('');
-        } catch (e) { agendaGrid.innerHTML = '<p>Erro ao sincronizar agenda.</p>'; }
+        } catch (e) {
+            agendaGrid.innerHTML = '<p>Erro ao sincronizar. Faça login novamente.</p>';
+        }
     }
 
+    // 5. FUNÇÕES DE AGENDAMENTO (EXPOSTAS AO WINDOW PARA O ONCLICK FUNCIONAR)
     window.openBookingForm = (time) => {
         currentEventId = null;
         selectedTime = time;
@@ -96,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalForm.classList.remove('hidden');
     };
 
+    // 6. EVENTOS DE BOTÕES
     document.getElementById('btn-delete-event').addEventListener('click', async () => {
         if (confirm("Excluir este agendamento?")) {
             await GoogleAPI.deleteEvent(currentEventId);
@@ -123,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("Erro ao salvar."); }
     });
 
-    // Eventos Gerais
     dateInput.addEventListener('change', renderTimeline);
     document.getElementById('btn-logout').addEventListener('click', () => {
         localStorage.removeItem('vitao_user');
@@ -133,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-open-whatsapp').addEventListener('click', () => window.location.href = urlWhatsAppFinal);
     document.getElementById('btn-success-close').addEventListener('click', () => document.getElementById('modal-success').classList.add('hidden'));
 
-    // Autocomplete Blindado
+    // 7. AUTOCOMPLETE
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
     clientSearch.addEventListener('input', (e) => {
