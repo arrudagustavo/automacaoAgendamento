@@ -6,10 +6,14 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vitão Booking</title>
+
     <link rel="apple-touch-icon" href="VitaoSolido.jpg">
     <link rel="apple-touch-icon-precomposed" href="VitaoSolido.jpg">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vitão Booking">
+
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
@@ -19,27 +23,29 @@
 
 <body>
     <div id="app" class="app-container">
-        <div class="bg-texture"></div>
-
         <section id="login-section" class="section active">
-            <div class="hero">
-                <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
-                <h1 class="brand-title">Vitão Booking</h1>
-                <p class="brand-subtitle">Gestão de Agenda</p>
-            </div>
-            <div class="login-controls">
-                <button id="btn-auth-manual" class="btn-login-premium">
-                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="G" width="20">
-                    <span>Entrar com Google</span>
-                </button>
+            <div class="login-wrapper">
+                <div class="hero">
+                    <img src="LogoVitao.png" alt="Logo Vitão" class="main-logo-login">
+                    <h1 class="brand-title">Vitão Booking</h1>
+                    <p class="brand-subtitle">Gestão de Agenda</p>
+                </div>
+                <div class="login-footer">
+                    <button id="btn-auth-manual" class="btn-login-premium">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="G" width="20">
+                        <span>Entrar com Google</span>
+                    </button>
+                </div>
             </div>
         </section>
 
         <section id="scheduling-section" class="section">
             <header class="premium-header">
                 <div class="header-content">
-                    <img src="LogoVitao.png" alt="Logo" class="mini-logo">
-                    <div class="user-info"><span id="user-name">...</span></div>
+                    <div class="user-info">
+                        <img src="LogoVitao.png" alt="Mini Logo" class="mini-logo">
+                        <span id="user-name">...</span>
+                    </div>
                     <button id="btn-logout" class="btn-logout">Sair</button>
                 </div>
             </header>
@@ -49,58 +55,46 @@
                     <label>DATA DA AGENDA</label>
                     <input type="date" id="schedule-date">
                 </div>
-                <div id="agenda-grid" class="agenda-timeline"></div>
+                <div id="agenda-grid" class="agenda-timeline">
+                </div>
             </main>
 
             <div id="modal-form" class="modal hidden">
-                <div class="dark-card form-container">
-                    <h3 id="selected-slot-title" style="color:var(--gold); margin-bottom:15px;">Novo Agendamento</h3>
-
+                <div class="dark-card">
+                    <h3 id="selected-slot-title">Agendar</h3>
                     <div class="input-card">
-                        <label>BUSCAR NOVO CLIENTE</label>
+                        <label>BUSCAR CLIENTE</label>
                         <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
                         <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                     </div>
-
                     <div class="row grid-2">
                         <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
-                        <div class="input-card"><label>TELEFONE</label><input type="tel" id="client-phone" readonly>
-                        </div>
+                        <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
                     </div>
-
                     <div class="input-card">
                         <label>DURAÇÃO</label>
                         <select id="schedule-duration">
                             <option value="30">30 min</option>
-                            <option value="45">45 min</option>
                             <option value="60" selected>1 hora</option>
-                            <option value="90">1h 30m</option>
                         </select>
                     </div>
-
-                    <div class="row grid-2" style="margin-top:15px;">
+                    <div class="grid-2">
                         <button id="btn-cancel-form" class="btn-secondary">Voltar</button>
                         <button id="btn-schedule" class="btn-action-gold">Salvar</button>
                     </div>
-
-                    <button id="btn-delete-event" class="btn-delete hidden" style="margin-top: 15px;">EXCLUIR
-                        AGENDAMENTO</button>
+                    <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
                 </div>
             </div>
         </section>
 
-        <div id="toast" class="toast-premium hidden"></div>
-
         <div id="modal-success" class="modal hidden">
             <div class="dark-card">
-                <div id="success-icon" style="font-size: 50px;">✅</div>
-                <h3 id="success-title" style="color: var(--gold); margin: 15px 0;">Sucesso!</h3>
-                <button id="btn-open-whatsapp" class="btn-action-gold" style="margin-bottom: 10px;">Enviar
-                    WhatsApp</button>
-                <button id="btn-success-close"
-                    style="background:none; border:none; color:#aaa; font-size:12px; cursor:pointer;">Fechar</button>
+                <h3>✅ Sucesso!</h3>
+                <button id="btn-open-whatsapp" class="btn-action-gold">WhatsApp</button>
+                <button id="btn-success-close">Fechar</button>
             </div>
         </div>
+        <div id="toast" class="toast-premium hidden"></div>
     </div>
 
     <script src="utils.js"></script>
