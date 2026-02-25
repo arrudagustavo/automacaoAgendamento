@@ -1,32 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let urlWhatsAppFinal = "", selectedDate = "", selectedTime = "", currentEventId = null;
+    let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null;
     const btnAuth = document.getElementById('btn-auth-manual');
     const weekHeader = document.getElementById('week-header');
     const daysWrapper = document.getElementById('days-wrapper');
     const timeColumn = document.getElementById('time-column');
-    const headerWrapper = document.querySelector('.header-scroll-wrapper');
-    const daysScroll = document.querySelector('.days-scroll-container');
     const modalForm = document.getElementById('modal-form');
     const timeInput = document.getElementById('schedule-time');
 
     GoogleAPI.init();
 
-    daysScroll.addEventListener('scroll', () => headerWrapper.scrollLeft = daysScroll.scrollLeft);
-
-    const hours = [];
+    // Inicia 07:00 - 22:00
     for (let i = 7; i <= 22; i++) {
-        const h = i.toString().padStart(2, '0') + ':00';
-        hours.push(h);
         const div = document.createElement('div');
         div.className = 'time-marker';
-        div.textContent = h;
+        div.textContent = i.toString().padStart(2, '0') + ':00';
         timeColumn.appendChild(div);
     }
 
     const renderWeek = async () => {
         const now = new Date();
         const start = new Date(now);
-        start.setDate(now.getDate() - now.getDay()); // Inicia no Domingo da semana corrente
+        start.setDate(now.getDate() - now.getDay()); // Domingo da semana vigente
 
         let headHTML = "";
         const weekDates = [];
@@ -42,30 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
         weekHeader.innerHTML = headHTML;
 
         try {
-            const timeMin = start.toISOString();
-            const timeMax = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
-            const events = await GoogleAPI.listEventsRange(timeMin, timeMax);
-
+            const events = await GoogleAPI.listEventsRange(start.toISOString(), new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString());
             let gridHTML = "";
             weekDates.forEach(date => {
                 const dateISO = date.toISOString().split('T')[0];
                 gridHTML += `<div class="day-strip">`;
-                hours.forEach(h => gridHTML += `<div class="slot-trigger" onclick="window.openBookingForm('${dateISO}','${h}')"></div>`);
+                for (let h = 7; h <= 22; h++) {
+                    const time = h.toString().padStart(2, '0') + ':00';
+                    gridHTML += `<div class="slot-trigger" onclick="window.openBookingForm('${dateISO}','${time}')"></div>`;
+                }
 
                 events.filter(e => (e.start.dateTime || e.start.date).startsWith(dateISO)).forEach(ev => {
                     const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 7) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
-                    const timeDisp = s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px" 
-                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${timeDisp}')">
+                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; font-size:9px; color:#fff; font-weight:600; overflow:hidden; z-index:2;" 
+                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}')">
                                      ${ev.summary.replace("Corte: ", "")}
                                  </div>`;
                 });
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { console.error("Erro renderizando semana:", e); }
+        } catch (e) { console.error(e); }
     };
 
     window.openBookingForm = (date, time) => {
@@ -76,40 +69,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-search').value = "";
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
-        document.getElementById('btn-delete-event').classList.add('hidden');
+        document.getElementById('btn-delete-event').classList.add('hidden'); // ESCONDE EM VAGO
         modalForm.classList.remove('hidden');
     };
 
     window.editBooking = (id, title, desc, date, time) => {
         currentEventId = id; selectedDate = date;
         timeInput.value = time;
-        const name = title.replace("Corte: ", "");
-        document.getElementById('client-name').value = name;
+        document.getElementById('client-name').value = title.replace("Corte: ", "");
         document.getElementById('client-phone').value = desc.replace("Tel: ", "");
-        document.getElementById('client-search').value = name;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
-        document.getElementById('btn-delete-event').classList.remove('hidden');
+        document.getElementById('btn-delete-event').classList.remove('hidden'); // MOSTRA EM OCUPADO
         modalForm.classList.remove('hidden');
-    };
-
-    document.getElementById('btn-schedule').onclick = async () => {
-        const name = document.getElementById('client-name').value;
-        const phone = document.getElementById('client-phone').value;
-        const timeVal = timeInput.value;
-        if (!name || !timeVal) return;
-        try {
-            if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
-            await GoogleAPI.createEvent({
-                summary: `Corte: ${name}`,
-                description: `Tel: ${phone}`,
-                start: { dateTime: Utils.toISOWithOffset(selectedDate, timeVal), timeZone: 'America/Sao_Paulo' },
-                end: { dateTime: Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
-            });
-            urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${selectedDate.split('-').reverse().join('/')} às ${timeVal}. Tamo junto!`)}`;
-            modalForm.classList.add('hidden');
-            document.getElementById('modal-success').classList.remove('hidden');
-        } catch (e) { alert("Erro ao salvar."); }
     };
 
     const saved = localStorage.getItem('vitao_user');
@@ -117,39 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
         document.getElementById('login-section').classList.remove('active');
         document.getElementById('scheduling-section').classList.add('active');
-        renderWeek(); GoogleAPI.fetchContacts();
+        renderWeek();
     }
 
     if (btnAuth) btnAuth.onclick = (e) => { e.preventDefault(); GoogleAPI.requestToken(); };
-    document.addEventListener('google-auth-success', async () => {
-        const user = await GoogleAPI.getProfile();
-        localStorage.setItem('vitao_user', JSON.stringify(user));
-        location.reload();
-    });
-
+    document.addEventListener('google-auth-success', () => location.reload());
     document.getElementById('btn-cancel-form').onclick = () => modalForm.classList.add('hidden');
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
-    document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
-    document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
-    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
-
-    const clientSearch = document.getElementById('client-search');
-    const autocompleteList = document.getElementById('autocomplete-list');
-    clientSearch.addEventListener('input', (e) => {
-        const q = e.target.value.toLowerCase();
-        if (q.length < 2) { autocompleteList.classList.add('hidden'); return; }
-        const results = [];
-        GoogleAPI.contacts.forEach(c => {
-            if (c.name.toLowerCase().includes(q)) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
-        });
-        autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
-        autocompleteList.classList.remove('hidden');
-    });
-
-    window.selectClient = (name, phone) => {
-        document.getElementById('client-name').value = name;
-        document.getElementById('client-phone').value = phone;
-        clientSearch.value = name;
-        autocompleteList.classList.add('hidden');
-    };
 });

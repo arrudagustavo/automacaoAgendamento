@@ -13,12 +13,11 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
     <div id="app" class="app-container">
-
         <section id="login-section" class="section active">
             <div class="hero-login">
                 <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
@@ -38,75 +37,60 @@
                     <span id="user-name">...</span>
                     <button id="btn-logout" class="btn-logout-premium">SAIR</button>
                 </div>
-                <div class="header-scroll-wrapper">
+                <div class="header-grid-wrapper">
                     <div id="week-header" class="week-days-row"></div>
                 </div>
             </header>
-
             <main class="calendar-viewport">
                 <div class="calendar-grid">
                     <div id="time-column" class="time-labels"></div>
-                    <div class="days-scroll-container">
-                        <div id="days-wrapper" class="days-columns"></div>
-                    </div>
+                    <div id="days-wrapper" class="days-columns"></div>
                 </div>
             </main>
         </section>
 
         <div id="modal-form" class="modal hidden">
             <div class="dark-card">
-                <div class="modal-header">
-                    <h3 id="selected-slot-title">Novo Agendamento</h3>
-                    <p id="selected-full-date" class="date-label"></p>
+                <h3 id="selected-slot-title">Agendar</h3>
+                <p id="selected-full-date" class="date-label"></p>
+                <div class="input-card">
+                    <label>BUSCAR CLIENTE</label>
+                    <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
+                    <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                 </div>
-
-                <div class="form-body">
-                    <div class="input-card">
-                        <label>BUSCAR CLIENTE</label>
-                        <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
-                        <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
-                    </div>
-
-                    <div class="row grid-2">
-                        <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
-                        <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
-                    </div>
-
-                    <div class="input-card highlight">
-                        <label>HORÁRIO DO SERVIÇO</label>
-                        <input type="time" id="schedule-time" step="300">
-                    </div>
-
-                    <div class="input-card">
-                        <label>DURAÇÃO</label>
-                        <select id="schedule-duration">
-                            <option value="30">30 minutos</option>
-                            <option value="45">45 minutos</option>
-                            <option value="60" selected>1 hora</option>
-                            <option value="90">1 hora e 30</option>
-                            <option value="120">2 horas</option>
-                        </select>
-                    </div>
-
-                    <div class="grid-2 footer-btns">
-                        <button id="btn-cancel-form" class="btn-secondary">VOLTAR</button>
-                        <button id="btn-schedule" class="btn-action-gold">AGENDAR</button>
-                    </div>
-
-                    <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
+                <div class="row grid-2">
+                    <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
+                    <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
                 </div>
+                <div class="input-card">
+                    <label>HORÁRIO DO SERVIÇO</label>
+                    <input type="time" id="schedule-time" step="300">
+                </div>
+                <div class="input-card">
+                    <label>DURAÇÃO</label>
+                    <select id="schedule-duration">
+                        <option value="30">30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60" selected>1 hora</option>
+                        <option value="90">1 hora e 30</option>
+                        <option value="105">1 hora e 45</option>
+                        <option value="120">2 horas</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <button id="btn-cancel-form" class="btn-secondary">VOLTAR</button>
+                    <button id="btn-schedule" class="btn-action-gold">AGENDAR</button>
+                </div>
+                <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
             </div>
         </div>
 
         <div id="modal-success" class="modal hidden">
             <div class="dark-card success-card">
                 <div class="success-icon">✅</div>
-                <h3 style="color: var(--gold); margin-bottom: 10px;">Sucesso!</h3>
-                <p style="font-size: 14px; color: #ccc; margin-bottom: 25px;">Agendamento realizado no Google Agenda.
-                </p>
+                <h3>Sucesso!</h3>
                 <button id="btn-open-whatsapp" class="btn-action-gold">ABRIR WHATSAPP</button>
-                <button id="btn-success-close" class="btn-secondary"
-                    style="margin-top: 10px; border:none; color: #888;">FECHAR</button>
+                <button id="btn-success-close" class="btn-secondary" style="border:none;">FECHAR</button>
             </div>
         </div>
     </div>
