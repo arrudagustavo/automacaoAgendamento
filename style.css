@@ -40,50 +40,20 @@ body {
     display: flex !important;
 }
 
-/* LOGIN */
-.hero-login {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.main-logo-login {
-    width: 200px;
-    margin-bottom: 20px;
-}
-
-.brand-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
+/* BOTÃO SAIR PREMIUM */
+.btn-logout-premium {
+    background: transparent;
     color: var(--gold);
-}
-
-.login-action {
-    padding: 0 24px 100px 24px;
-    position: relative;
-    z-index: 100;
-}
-
-.btn-login-premium {
-    width: 100%;
-    padding: 16px;
-    border-radius: 50px;
-    background: #FFF;
-    color: #000;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    border: none;
-    font-size: 16px;
+    border: 1px solid var(--gold);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
     cursor: pointer;
 }
 
-/* CALENDÁRIO SEMANAL */
+/* HEADER E GRADE SEMANAL (DOM-SAB) */
 .premium-header {
     padding-top: env(safe-area-inset-top, 44px);
     background: #000;
@@ -104,11 +74,12 @@ body {
 
 .week-days-row {
     display: flex;
-    width: 700px;
+    width: 840px;
 }
 
+/* 120px por dia para caber 7 dias com respiro */
 .day-label {
-    width: 100px;
+    width: 120px;
     text-align: center;
     padding: 5px 0;
     font-size: 10px;
@@ -135,7 +106,7 @@ body {
 
 .calendar-grid {
     display: flex;
-    width: 750px;
+    width: 890px;
     position: relative;
 }
 
@@ -165,12 +136,12 @@ body {
 
 .days-columns {
     display: flex;
-    width: 700px;
+    width: 840px;
     position: relative;
 }
 
 .day-strip {
-    width: 100px;
+    width: 120px;
     flex-shrink: 0;
     border-right: 1px solid #111;
     position: relative;
@@ -183,10 +154,11 @@ body {
     width: 100%;
 }
 
+/* EVENTO UX GOOGLE */
 .event-card {
     position: absolute;
-    left: 2px;
-    right: 2px;
+    left: 4px;
+    right: 4px;
     background: rgba(3, 155, 229, 0.3);
     border-left: 3px solid var(--blue-google);
     border-radius: 4px;
@@ -196,10 +168,9 @@ body {
     font-weight: 600;
     overflow: hidden;
     z-index: 2;
-    pointer-events: auto;
 }
 
-/* MODAL PREMIUM (GRANDE E ESPAÇADA) */
+/* MODAL PREMIUM REVISADA */
 .modal {
     position: fixed;
     inset: 0;
@@ -214,60 +185,20 @@ body {
 .dark-card {
     background: #121212;
     border: 1px solid var(--gold);
-    padding: 40px 25px;
+    padding: 35px 25px;
     border-radius: 25px;
     width: 100%;
     max-width: 400px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 1);
 }
 
-.date-label {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 25px;
-    font-weight: 600;
+.input-card input[type="time"] {
+    color-scheme: dark;
 }
 
-.success-icon {
-    font-size: 50px;
-    margin-bottom: 15px;
-}
+/* Garante visual nativo dark no iPhone */
 
-.input-card {
-    background: #1a1a1a;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid #333;
-    margin-bottom: 12px;
-}
-
-.input-card label {
-    font-size: 10px;
-    color: var(--gold);
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.input-card input,
-.input-card select {
-    background: none;
-    border: none;
-    color: #fff;
-    width: 100%;
-    font-size: 16px;
-    outline: none;
-}
-
-/* BOTÕES REVISADOS */
-.grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 25px;
-}
-
+/* Botões da modal conforme solicitado */
 .btn-action-gold {
     background: var(--gold);
     color: #000;
@@ -277,7 +208,6 @@ body {
     font-weight: 800;
     font-size: 13px;
     text-transform: uppercase;
-    cursor: pointer;
 }
 
 .btn-secondary {
@@ -289,40 +219,4 @@ body {
     font-weight: 800;
     font-size: 13px;
     text-transform: uppercase;
-    cursor: pointer;
-}
-
-.btn-delete {
-    width: 100%;
-    padding: 12px;
-    color: #ff4444;
-    background: none;
-    border: none;
-    margin-top: 20px;
-    font-weight: 700;
-    font-size: 11px;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* AUTOCOMPLETE */
-.autocomplete-list {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 8px;
-    margin-top: 5px;
-    list-style: none;
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-.autocomplete-list li {
-    padding: 12px;
-    border-bottom: 1px solid #222;
-    font-size: 13px;
-    color: #fff;
 }

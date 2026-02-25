@@ -36,7 +36,7 @@
             <header class="premium-header">
                 <div class="header-top">
                     <span id="user-name">...</span>
-                    <button id="btn-logout" class="btn-logout">Sair</button>
+                    <button id="btn-logout" class="btn-logout-premium">SAIR</button>
                 </div>
                 <div class="header-scroll-wrapper">
                     <div id="week-header" class="week-days-row"></div>
@@ -70,10 +70,18 @@
                 </div>
 
                 <div class="input-card">
+                    <label>HORÁRIO DO SERVIÇO</label>
+                    <input type="time" id="schedule-time" step="300">
+                </div>
+
+                <div class="input-card">
                     <label>DURAÇÃO</label>
                     <select id="schedule-duration">
-                        <option value="30">30 min</option>
+                        <option value="30">30 minutos</option>
+                        <option value="45">45 minutos</option>
                         <option value="60" selected>1 hora</option>
+                        <option value="90">1 hora e 30</option>
+                        <option value="120">2 horas</option>
                     </select>
                 </div>
 
@@ -90,9 +98,7 @@
             <div class="dark-card success-card">
                 <div class="success-icon">✅</div>
                 <h3 style="color: var(--gold); margin-bottom: 10px;">Sucesso!</h3>
-                <p style="font-size: 14px; color: #ccc; margin-bottom: 25px;">Agendamento realizado no Google Agenda.
-                </p>
-
+                <p style="font-size: 14px; color: #ccc; margin-bottom: 25px;">Agendamento realizado.</p>
                 <button id="btn-open-whatsapp" class="btn-action-gold">ABRIR WHATSAPP</button>
                 <button id="btn-success-close" class="btn-secondary"
                     style="margin-top: 10px; border:none; color: #888;">FECHAR</button>
