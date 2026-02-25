@@ -1,112 +1,144 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "";
+    let selectedTime = "";
+    let currentEventId = null; // Guarda o ID se estiver editando
+
     const loginSection = document.getElementById('login-section');
     const schedulingSection = document.getElementById('scheduling-section');
-    const btnAuth = document.getElementById('btn-auth-manual');
-    const modalSuccess = document.getElementById('modal-success');
+    const agendaGrid = document.getElementById('agenda-grid');
+    const dateInput = document.getElementById('schedule-date');
+    const modalForm = document.getElementById('modal-form');
+    const btnDelete = document.getElementById('btn-delete-event');
 
     GoogleAPI.init();
 
-    const resetForm = () => {
+    // RENDERIZAR AGENDA
+    const renderTimeline = async () => {
+        agendaGrid.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Buscando agenda...</p>';
+        try {
+            const occupiedEvents = await GoogleAPI.listEvents(dateInput.value);
+            const slots = [];
+            for (let h = 8; h <= 20; h++) {
+                slots.push(`${h.toString().padStart(2, '0')}:00`, `${h.toString().padStart(2, '0')}:30`);
+            }
+
+            agendaGrid.innerHTML = slots.map(slotTime => {
+                const event = occupiedEvents.find(ev => {
+                    const start = new Date(ev.start.dateTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const end = new Date(ev.end.dateTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    return slotTime >= start && slotTime < end;
+                });
+
+                if (event) {
+                    const clientName = event.summary.replace("Corte: ", "");
+                    return `<div class="slot ocupado" onclick="editBooking('${slotTime}', '${event.id}', '${clientName}', '${event.description || ""}')">
+                                <div class="time">${slotTime}</div>
+                                <div class="info">${event.summary}</div>
+                            </div>`;
+                }
+                return `<div class="slot vago" onclick="openBookingForm('${slotTime}')">
+                            <div class="time">${slotTime}</div>
+                            <div class="info">Disponível</div>
+                        </div>`;
+            }).join('');
+        } catch (e) { agendaGrid.innerHTML = '<p>Erro ao sincronizar.</p>'; }
+    };
+
+    // ABRIR PARA NOVO AGENDAMENTO
+    window.openBookingForm = (time) => {
+        currentEventId = null;
+        selectedTime = time;
+        btnDelete.classList.add('hidden');
+        document.getElementById('selected-slot-title').textContent = `Agendar às ${time}`;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
-        const agora = new Date();
-        document.getElementById('schedule-date').value = agora.toISOString().split('T')[0];
-        document.getElementById('schedule-time').value = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
+        modalForm.classList.remove('hidden');
     };
 
-    // PERSISTÊNCIA: Mantém logado ao voltar do Zap ou fechar app
+    // ABRIR PARA EDITAR
+    window.editBooking = (time, id, name, desc) => {
+        currentEventId = id;
+        selectedTime = time;
+        btnDelete.classList.remove('hidden');
+        document.getElementById('selected-slot-title').textContent = `Editar: ${time}`;
+        document.getElementById('client-name').value = name;
+        document.getElementById('client-search').value = name;
+        document.getElementById('client-phone').value = desc.replace("Tel: ", "");
+        modalForm.classList.remove('hidden');
+    };
+
+    // EXCLUIR
+    btnDelete.addEventListener('click', async () => {
+        if (!confirm("Deseja realmente excluir este agendamento?")) return;
+        try {
+            await GoogleAPI.deleteEvent(currentEventId);
+            modalForm.classList.add('hidden');
+            renderTimeline();
+            Utils.showToast("Agendamento excluído!");
+        } catch (e) { alert("Erro ao excluir."); }
+    });
+
+    // SALVAR (CRIA NOVO OU ATUALIZA)
+    document.getElementById('btn-schedule').addEventListener('click', async () => {
+        const name = document.getElementById('client-name').value;
+        const phone = document.getElementById('client-phone').value;
+        const duration = document.getElementById('schedule-duration').value;
+
+        if (!name) return;
+
+        try {
+            // Se estiver editando, remove o antigo primeiro
+            if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
+
+            await GoogleAPI.createEvent({
+                summary: `Corte: ${name}`,
+                description: `Tel: ${phone}`,
+                start: { dateTime: Utils.toISOWithOffset(dateInput.value, selectedTime), timeZone: 'America/Sao_Paulo' },
+                end: { dateTime: Utils.toISOWithOffset(dateInput.value, Utils.calculateEndTime(selectedTime, duration)), timeZone: 'America/Sao_Paulo' }
+            });
+
+            urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${dateInput.value.split('-').reverse().join('/')} às ${selectedTime}. Tamo junto!`)}`;
+            modalForm.classList.add('hidden');
+            document.getElementById('modal-success').classList.remove('hidden');
+            renderTimeline();
+        } catch (err) { alert("Erro ao salvar."); }
+    });
+
+    // RESTANTE DAS FUNÇÕES (LOGIN / AUTOCOMPLETE)
+    dateInput.addEventListener('change', renderTimeline);
     const savedUser = localStorage.getItem('vitao_user');
     if (savedUser) {
-        const user = JSON.parse(savedUser);
-        document.getElementById('user-name').textContent = user.name;
+        document.getElementById('user-name').textContent = JSON.parse(savedUser).name;
         loginSection.classList.remove('active');
         schedulingSection.classList.add('active');
-        resetForm();
+        dateInput.value = new Date().toISOString().split('T')[0];
+        renderTimeline();
         GoogleAPI.fetchContacts();
     }
+    document.getElementById('btn-auth-manual').addEventListener('click', () => GoogleAPI.requestToken());
+    document.addEventListener('google-auth-success', () => location.reload());
+    document.getElementById('btn-logout').addEventListener('click', () => { localStorage.removeItem('vitao_user'); location.reload(); });
+    document.getElementById('btn-cancel-form').addEventListener('click', () => modalForm.classList.add('hidden'));
 
-    btnAuth.addEventListener('click', () => GoogleAPI.requestToken());
-
-    document.addEventListener('google-auth-success', async () => {
-        const user = await GoogleAPI.getProfile();
-        if (user) {
-            localStorage.setItem('vitao_user', JSON.stringify(user));
-            document.getElementById('user-name').textContent = user.name;
-        }
-        loginSection.classList.remove('active');
-        schedulingSection.classList.add('active');
-        resetForm();
-        await GoogleAPI.fetchContacts();
-    });
-
-    document.getElementById('btn-logout').addEventListener('click', () => {
-        localStorage.removeItem('vitao_user');
-        location.reload();
-    });
-
-    // AUTOCOMPLETE
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
     clientSearch.addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase();
         if (q.length < 2) { autocompleteList.classList.add('hidden'); return; }
         const results = [];
-        if (GoogleAPI.contacts) {
-            GoogleAPI.contacts.forEach(c => {
-                const match = c.name.toLowerCase().includes(q) || (c.phones && c.phones.some(p => p.includes(q)));
-                if (match) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
-            });
-        }
-        if (results.length > 0) {
-            autocompleteList.innerHTML = results.slice(0, 5).map(r => `
-                <li data-name="${r.name}" data-phone="${r.phone}"><strong>${r.name}</strong><br>${r.phone}</li>
-            `).join('');
-            autocompleteList.classList.remove('hidden');
-        } else { autocompleteList.classList.add('hidden'); }
+        GoogleAPI.contacts.forEach(c => {
+            if (c.name.toLowerCase().includes(q)) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
+        });
+        autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
+        autocompleteList.classList.remove('hidden');
     });
-
-    autocompleteList.addEventListener('click', (e) => {
-        const li = e.target.closest('li');
-        if (li) {
-            document.getElementById('client-name').value = li.dataset.name;
-            document.getElementById('client-phone').value = li.dataset.phone;
-            clientSearch.value = li.dataset.name;
-            autocompleteList.classList.add('hidden');
-        }
-    });
-
-    // AGENDAR
-    document.getElementById('btn-schedule').addEventListener('click', async () => {
-        const name = document.getElementById('client-name').value;
-        const phone = document.getElementById('client-phone').value;
-        const date = document.getElementById('schedule-date').value;
-        const time = document.getElementById('schedule-time').value;
-
-        if (!name || !date || !time) { Utils.showToast("Preencha tudo!"); return; }
-
-        try {
-            await GoogleAPI.createEvent({
-                summary: `Corte: ${name}`,
-                description: `Tel: ${phone}`,
-                start: { dateTime: Utils.toISOWithOffset(date, time), timeZone: 'America/Sao_Paulo' },
-                end: { dateTime: Utils.toISOWithOffset(date, Utils.calculateEndTime(time, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
-            });
-
-            const dataF = date.split('-').reverse().join('/');
-            const msg = `Fala ${name}! Seu horário está confirmado para o dia ${dataF} às ${time}. Tamo junto!`;
-            urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(msg)}`;
-            modalSuccess.classList.remove('hidden');
-        } catch (err) { Utils.showToast("Erro ao agendar."); }
-    });
-
-    document.getElementById('btn-open-whatsapp').addEventListener('click', () => {
-        window.location.href = urlWhatsAppFinal;
-    });
-
-    document.getElementById('btn-success-close').addEventListener('click', () => {
-        modalSuccess.classList.add('hidden');
-        resetForm(); // Limpa dados sem deslogar
-    });
+    window.selectClient = (name, phone) => {
+        document.getElementById('client-name').value = name;
+        document.getElementById('client-phone').value = phone;
+        clientSearch.value = name;
+        autocompleteList.classList.add('hidden');
+    };
+    document.getElementById('btn-open-whatsapp').addEventListener('click', () => window.location.href = urlWhatsAppFinal);
+    document.getElementById('btn-success-close').addEventListener('click', () => document.getElementById('modal-success').classList.add('hidden'));
 });
