@@ -1,21 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null;
+
+    let currentWeekStart = new Date();
+    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+    currentWeekStart.setHours(0, 0, 0, 0);
+
     const btnAuth = document.getElementById('btn-auth-manual');
     const weekHeader = document.getElementById('week-header');
     const daysWrapper = document.getElementById('days-wrapper');
     const timeColumn = document.getElementById('time-column');
     const modalForm = document.getElementById('modal-form');
     const timeInput = document.getElementById('schedule-time');
+    const calendarViewport = document.querySelector('.calendar-viewport');
 
     // ==========================================
-    // FIX CRÍTICO DO LOGIN: ESPERA O GOOGLE CARREGAR
+    // INICIALIZAÇÃO SEGURA DO GOOGLE API
     // ==========================================
     const initApp = () => {
         if (typeof google !== 'undefined' && typeof GoogleAPI !== 'undefined') {
             GoogleAPI.init();
-            console.log("Google API Pronta para Login.");
         } else {
-            setTimeout(initApp, 200); // Tenta novamente em 200ms
+            setTimeout(initApp, 200);
         }
     };
     initApp();
@@ -32,7 +37,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // RENDERIZAÇÃO DA GRADE (07h às 22h, Dom a Sab)
+    // LÓGICA DE DESLIZE (SWIPE) MANTIDA
+    // ==========================================
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    if (calendarViewport) {
+        calendarViewport.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        calendarViewport.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+    }
+
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            } else {
+                currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            }
+            renderWeek();
+        }
+    }
+
+    // ==========================================
+    // RENDERIZAÇÃO DA GRADE (07h às 22h)
     // ==========================================
     for (let i = 7; i <= 22; i++) {
         const div = document.createElement('div');
@@ -43,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderWeek = async () => {
         const now = new Date();
-        const start = new Date(now);
-        start.setDate(now.getDate() - now.getDay()); // Fixa no Domingo da semana
+        const start = new Date(currentWeekStart);
 
         let headHTML = "";
         const weekDates = [];
@@ -77,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 7) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
-                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px;" 
+                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; font-size:9px; color:#fff; font-weight:600; overflow:hidden; z-index:2; pointer-events:auto;" 
                                      onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}')">
                                      ${ev.summary.replace("Corte: ", "")}
                                  </div>`;
@@ -85,11 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { console.error("Erro ao carregar agenda", e); }
+        } catch (e) { console.error("Erro ao carregar a agenda:", e); }
     };
 
     // ==========================================
-    // LÓGICA DA MODAL (COM TRAVA NO BOTÃO EXCLUIR)
+    // FUNÇÕES DA MODAL
     // ==========================================
     window.openBookingForm = (date, time) => {
         selectedDate = date; currentEventId = null;
@@ -99,8 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-search').value = "";
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
-
-        // ESCONDE O BOTÃO EXCLUIR EM HORÁRIO VAGO
         document.getElementById('btn-delete-event').classList.add('hidden');
         modalForm.classList.remove('hidden');
     };
@@ -114,8 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-search').value = name;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
-
-        // MOSTRA O BOTÃO EXCLUIR QUANDO EXISTE AGENDAMENTO
         document.getElementById('btn-delete-event').classList.remove('hidden');
         modalForm.classList.remove('hidden');
     };
@@ -140,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // PERSISTÊNCIA, AUTORIZAÇÃO E OUTROS BOTÕES
+    // PERSISTÊNCIA, LOGIN E OUTROS CLIQUES
     // ==========================================
     const saved = localStorage.getItem('vitao_user');
     if (saved && saved !== "undefined") {
@@ -163,18 +194,49 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
     document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
 
-    // Autocomplete
+    // ==========================================
+    // AUTO-COMPLETE BLINDADO E CORRIGIDO
+    // ==========================================
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
+
+    // Esconde a lista ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (e.target.id !== 'client-search') {
+            autocompleteList.classList.add('hidden');
+        }
+    });
+
     clientSearch.addEventListener('input', (e) => {
         const q = e.target.value.toLowerCase();
-        if (q.length < 2) { autocompleteList.classList.add('hidden'); return; }
+        if (q.length < 2) {
+            autocompleteList.classList.add('hidden');
+            return;
+        }
+
         const results = [];
-        GoogleAPI.contacts.forEach(c => {
-            if (c.name.toLowerCase().includes(q)) c.phones.forEach(p => results.push({ name: c.name, phone: p }));
-        });
-        autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
-        autocompleteList.classList.remove('hidden');
+        if (typeof GoogleAPI !== 'undefined' && GoogleAPI.contacts && GoogleAPI.contacts.length > 0) {
+            GoogleAPI.contacts.forEach(c => {
+                const nameMatch = c.name.toLowerCase().includes(q);
+                const phoneMatch = c.phones && c.phones.some(p => p.includes(q));
+
+                if (nameMatch || phoneMatch) {
+                    if (c.phones && c.phones.length > 0) {
+                        c.phones.forEach(p => results.push({ name: c.name, phone: p }));
+                    } else {
+                        results.push({ name: c.name, phone: '' }); // Permite listar quem não tem número salvo
+                    }
+                }
+            });
+        }
+
+        if (results.length > 0) {
+            autocompleteList.innerHTML = results.slice(0, 5).map(r => `<li onclick="window.selectClient('${r.name}', '${r.phone}')"><strong>${r.name}</strong><br>${r.phone}</li>`).join('');
+            autocompleteList.classList.remove('hidden');
+        } else {
+            autocompleteList.innerHTML = `<li style="padding: 15px; color: #888; font-size: 13px; text-align: center;">Nenhum contato encontrado</li>`;
+            autocompleteList.classList.remove('hidden');
+        }
     });
 
     window.selectClient = (name, phone) => {
