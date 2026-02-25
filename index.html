@@ -18,6 +18,7 @@
 
 <body>
     <div id="app" class="app-container">
+
         <section id="login-section" class="section active">
             <div class="hero-login">
                 <img src="LogoVitao.png" alt="Logo" class="main-logo-login">
@@ -51,21 +52,25 @@
 
         <div id="modal-form" class="modal hidden">
             <div class="dark-card">
-                <h3 id="selected-slot-title">Agendar</h3>
+                <h3 id="selected-slot-title">Novo Agendamento</h3>
                 <p id="selected-full-date" class="date-label"></p>
+
                 <div class="input-card">
                     <label>BUSCAR CLIENTE</label>
                     <input type="text" id="client-search" placeholder="Nome ou telefone..." autocomplete="off">
                     <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
                 </div>
-                <div class="row grid-2">
+
+                <div class="row grid-2-inputs">
                     <div class="input-card"><label>NOME</label><input type="text" id="client-name" readonly></div>
                     <div class="input-card"><label>TEL</label><input type="tel" id="client-phone" readonly></div>
                 </div>
-                <div class="input-card highlight">
+
+                <div class="input-card">
                     <label>HORÁRIO DO SERVIÇO</label>
                     <input type="time" id="schedule-time" step="300">
                 </div>
+
                 <div class="input-card">
                     <label>DURAÇÃO</label>
                     <select id="schedule-duration">
@@ -77,14 +82,28 @@
                         <option value="120">2 horas</option>
                     </select>
                 </div>
-                <div class="grid-2">
+
+                <div class="grid-2-btns">
                     <button id="btn-cancel-form" class="btn-secondary">VOLTAR</button>
                     <button id="btn-schedule" class="btn-action-gold">AGENDAR</button>
                 </div>
+
                 <button id="btn-delete-event" class="btn-delete hidden">EXCLUIR AGENDAMENTO</button>
             </div>
         </div>
+
+        <div id="modal-success" class="modal hidden">
+            <div class="dark-card success-card">
+                <div class="success-icon">✅</div>
+                <h3 style="color: var(--gold);">Sucesso!</h3>
+                <p style="font-size: 14px; color: #ccc; margin-top: 10px;">Agendamento salvo.</p>
+                <button id="btn-open-whatsapp" class="btn-action-gold" style="margin-top: 25px;">ABRIR WHATSAPP</button>
+                <button id="btn-success-close" class="btn-secondary"
+                    style="margin-top: 15px; border:none;">FECHAR</button>
+            </div>
+        </div>
     </div>
+
     <script src="utils.js"></script>
     <script src="google-api.js"></script>
     <script src="app.js"></script>
