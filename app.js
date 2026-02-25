@@ -13,6 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
+    // ==========================================
+    // FUNÇÃO AUXILIAR: LIMPA O CELULAR (TIRA O +55 E FORMATOS)
+    // ==========================================
+    const formatPhoneForInput = (phoneRaw) => {
+        if (!phoneRaw) return "";
+        let cleaned = phoneRaw.replace(/\D/g, ''); // Remove tudo que não é número
+        // Se começar com 55 e tiver tamanho de DDD + Número (ex: 5511999998888)
+        if (cleaned.startsWith('55') && cleaned.length >= 12) {
+            cleaned = cleaned.substring(2);
+        }
+        return cleaned;
+    };
+
     const initApp = () => {
         if (typeof google !== 'undefined' && typeof GoogleAPI !== 'undefined') {
             GoogleAPI.init();
@@ -127,7 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
         timeInput.value = time;
         const name = title.replace("Corte: ", "");
         document.getElementById('client-name').value = name;
-        document.getElementById('client-phone').value = desc.replace("Tel: ", "");
+
+        // Aplica a formatação limpa no telefone que veio da descrição
+        const rawPhone = desc.replace("Tel: ", "");
+        document.getElementById('client-phone').value = formatPhoneForInput(rawPhone);
+
         document.getElementById('client-search').value = name;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
@@ -171,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Se ainda não tem contatos, força a busca
         if (GoogleAPI.contacts.length === 0 && GoogleAPI.accessToken) {
             await GoogleAPI.fetchContacts();
         }
@@ -181,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
             GoogleAPI.contacts.forEach(c => {
                 const nameMatch = c.name && c.name.toLowerCase().includes(q);
 
-                // Limpa formatação (parênteses, traços, etc)
                 const qNum = q.replace(/\D/g, '');
                 const phoneMatch = c.phones && c.phones.some(p => {
                     if (!p) return false;
@@ -210,7 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.selectClient = (name, phone) => {
         document.getElementById('client-name').value = name;
-        document.getElementById('client-phone').value = phone;
+
+        // Aplica a formatação limpa no telefone vindo do Google Contacts
+        document.getElementById('client-phone').value = formatPhoneForInput(phone);
+
         clientSearch.value = name;
         autocompleteList.classList.add('hidden');
     };
@@ -240,8 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('login-section').classList.remove('active');
         document.getElementById('scheduling-section').classList.add('active');
 
-        // Se a pessoa deu F5, precisa clicar em logar de novo internamente
-        // O ideal aqui é ter o token ativo, se der erro ao carregar a agenda, a gente avisa.
         if (GoogleAPI.accessToken) {
             renderWeek();
             GoogleAPI.fetchContacts();
@@ -251,6 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-cancel-form').onclick = () => modalForm.classList.add('hidden');
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
     document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
-    document.getElementById('btn-open-whatsapp').onclick = () => { window.open(urlWhatsAppFinal, '_blank'); document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
+
+    // ==========================================
+    // ABRIR WHATSAPP (CORRIGIDO PARA PWA NO IPHONE)
+    // ==========================================
+    document.getElementById('btn-open-whatsapp').onclick = () => {
+        document.getElementById('modal-success').classList.add('hidden');
+        renderWeek();
+        // Substitui o window.open problemático por location.href
+        window.location.href = urlWhatsAppFinal;
+    };
+
     document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
 });
