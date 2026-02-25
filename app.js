@@ -1,13 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "", selectedDate = "", selectedTime = "", currentEventId = null;
     const btnAuth = document.getElementById('btn-auth-manual');
+    const loginSection = document.getElementById('login-section');
+    const schedulingSection = document.getElementById('scheduling-section');
     const weekHeader = document.getElementById('week-header');
     const daysWrapper = document.getElementById('days-wrapper');
     const timeColumn = document.getElementById('time-column');
 
-    GoogleAPI.init();
+    // Inicializa API IMEDIATAMENTE
+    if (typeof GoogleAPI !== 'undefined') {
+        GoogleAPI.init();
+    }
 
-    // Inicia Horários
+    // CLIQUE DIRETO - Sem intermediários para evitar bloqueio de pop-up
+    if (btnAuth) {
+        btnAuth.onclick = (e) => {
+            e.preventDefault();
+            console.log("Iniciando fluxo de login Google...");
+            GoogleAPI.requestToken();
+        };
+    }
+
+    // Grade de Horários (08h às 21h)
     const hours = [];
     for (let i = 8; i <= 21; i++) {
         const h = i.toString().padStart(2, '0') + ':00';
@@ -16,15 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'time-marker';
         div.textContent = h;
         timeColumn.appendChild(div);
-    }
-
-    // FIX LOGIN: Atribuição direta para evitar conflitos de eventos
-    if (btnAuth) {
-        btnAuth.onclick = (e) => {
-            e.preventDefault();
-            console.log("Clique no Login detectado!");
-            GoogleAPI.requestToken();
-        };
     }
 
     const renderWeek = async () => {
@@ -77,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     });
 
-    // Funções Globais
+    // Funções de Modal
     window.openBookingForm = (date, time) => {
         selectedDate = date; selectedTime = time; currentEventId = null;
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
@@ -93,15 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
+    // Sessão
     const saved = localStorage.getItem('vitao_user');
     if (saved) {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
-        document.getElementById('login-section').classList.remove('active');
-        document.getElementById('scheduling-section').classList.add('active');
+        loginSection.classList.remove('active');
+        schedulingSection.classList.add('active');
         renderWeek();
         GoogleAPI.fetchContacts();
     }
 
-    document.getElementById('btn-cancel-form').onclick = () => document.getElementById('modal-form').classList.add('hidden');
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
+    document.getElementById('btn-cancel-form').onclick = () => document.getElementById('modal-form').classList.add('hidden');
 });
