@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null;
+    let currentEventsList = []; // Nova variável global para checar conflitos
 
     let currentWeekStart = new Date();
     currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
@@ -13,9 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
-    // ==========================================
-    // FUNÇÃO AUXILIAR: LIMPA O CELULAR (TIRA O +55 E FORMATOS)
-    // ==========================================
     const formatPhoneForInput = (phoneRaw) => {
         if (!phoneRaw) return "";
         let cleaned = phoneRaw.replace(/\D/g, '');
@@ -63,9 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================
-    // GERA HORÁRIOS DA GRADE (AGORA DAS 06:00 ÀS 23:00)
-    // ==========================================
+    // GERA HORÁRIOS DA GRADE
     for (let i = 6; i <= 23; i++) {
         const div = document.createElement('div');
         div.className = 'time-marker';
@@ -74,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const renderWeek = async () => {
+        if (!GoogleAPI.accessToken) return;
+
         const now = new Date();
         const start = new Date(currentWeekStart);
 
@@ -100,21 +98,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeMax = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
             const events = await GoogleAPI.listEventsRange(timeMin, timeMax);
 
+            // Salva na memória para validar conflitos mais tarde
+            currentEventsList = events;
+
             let gridHTML = "";
             weekDates.forEach(date => {
                 const dateISO = date.toISOString().split('T')[0];
                 gridHTML += `<div class="day-strip">`;
 
-                // GERA SLOTS CLICÁVEIS DAS 06:00 ÀS 23:00
                 for (let h = 6; h <= 23; h++) {
                     const t = h.toString().padStart(2, '0') + ':00';
                     gridHTML += `<div class="slot-trigger" onclick="window.openBookingForm('${dateISO}','${t}')"></div>`;
                 }
 
                 events.filter(e => (e.start.dateTime || e.start.date).startsWith(dateISO)).forEach(ev => {
-                    const s = new Date(ev.start.dateTime), e = new Date(ev.end.dateTime);
-
-                    // CÁLCULO ATUALIZADO (Subtrai 6 para alinhar o bloquinho com o topo das 06:00)
+                    const s = new Date(ev.start.dateTime);
+                    const e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 6) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
 
@@ -125,9 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         displayName = displayName.split(" - ")[0];
                     }
 
-                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; font-size:9px; color:#fff; font-weight:600; overflow:hidden; z-index:2; pointer-events:auto;" 
-                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}')">
-                                     ${displayName}
+                    // Formatação do tempo para exibição
+                    const startTimeStr = s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const endTimeStr = e.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                    gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; color:#fff; overflow:hidden; z-index:2; pointer-events:auto; padding:4px; line-height:1.2; box-sizing:border-box;" 
+                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${startTimeStr}')">
+                                     <span style="font-weight:800; font-size:10px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</span>
+                                     <span style="font-size:8px; opacity:0.9;">${startTimeStr} - ${endTimeStr}</span>
                                  </div>`;
                 });
                 gridHTML += `</div>`;
@@ -137,6 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.openBookingForm = (date, time) => {
+        // VALIDAÇÃO: Impede criar agendamento no passado
+        const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
+        if (slotDateTime < new Date()) {
+            alert("Não é permitido agendar em um horário que já passou.");
+            return;
+        }
+
         selectedDate = date; currentEventId = null;
         timeInput.value = time;
         document.getElementById('client-name').value = "";
@@ -156,6 +167,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.editBooking = (id, title, desc, date, time) => {
+        // VALIDAÇÃO: Impede editar agendamento que já passou
+        const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
+        if (slotDateTime < new Date()) {
+            alert("Este agendamento já passou e não pode ser alterado.");
+            return;
+        }
+
         currentEventId = id; selectedDate = date;
         timeInput.value = time;
 
@@ -189,14 +207,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = document.getElementById('client-name').value;
         const phone = document.getElementById('client-phone').value;
         const timeVal = timeInput.value;
+        const duration = document.getElementById('schedule-duration').value;
         if (!name || !timeVal) return;
+
+        // Calcula as datas de início e fim do novo agendamento
+        const startISO = Utils.toISOWithOffset(selectedDate, timeVal);
+        const endISO = Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, duration));
+
+        const startDateTime = new Date(startISO);
+        const endDateTime = new Date(endISO);
+
+        // VALIDAÇÃO EXTRA: Proteção caso a pessoa mude o horário dentro da modal para o passado
+        if (startDateTime < new Date()) {
+            alert("O horário selecionado já passou.");
+            return;
+        }
+
+        // SISTEMA ANTI-CONFLITO: Varre a lista de eventos atual
+        const hasConflict = currentEventsList.find(ev => {
+            if (ev.id === currentEventId) return false; // Ignora se for o evento que ele está editando
+
+            const evStart = new Date(ev.start.dateTime || ev.start.date);
+            const evEnd = new Date(ev.end.dateTime || ev.end.date);
+
+            // Lógica de sobreposição de horário
+            return (startDateTime < evEnd && endDateTime > evStart);
+        });
+
+        if (hasConflict) {
+            let conflictName = hasConflict.summary;
+            if (conflictName.startsWith("Corte: ")) conflictName = conflictName.replace("Corte: ", "");
+            else if (conflictName.includes(" - ")) conflictName = conflictName.split(" - ")[0];
+
+            alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} neste momento.`);
+            return;
+        }
+
         try {
             if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
             await GoogleAPI.createEvent({
                 summary: `${name} - ${phone}`,
                 description: `Tel: ${phone}`,
-                start: { dateTime: Utils.toISOWithOffset(selectedDate, timeVal), timeZone: 'America/Sao_Paulo' },
-                end: { dateTime: Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, document.getElementById('schedule-duration').value)), timeZone: 'America/Sao_Paulo' }
+                start: { dateTime: startISO, timeZone: 'America/Sao_Paulo' },
+                end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
             });
             urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${selectedDate.split('-').reverse().join('/')} às ${timeVal}. Tamo junto!`)}`;
             modalForm.classList.add('hidden');
