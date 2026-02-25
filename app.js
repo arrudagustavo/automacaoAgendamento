@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null;
-    let currentEventsList = []; // Nova variável global para checar conflitos
+    let currentEventsList = [];
 
     let currentWeekStart = new Date();
     currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeMax = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
             const events = await GoogleAPI.listEventsRange(timeMin, timeMax);
 
-            // Salva na memória para validar conflitos mais tarde
             currentEventsList = events;
 
             let gridHTML = "";
@@ -124,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         displayName = displayName.split(" - ")[0];
                     }
 
-                    // Formatação do tempo para exibição
                     const startTimeStr = s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     const endTimeStr = e.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -141,10 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.openBookingForm = (date, time) => {
-        // VALIDAÇÃO: Impede criar agendamento no passado
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         if (slotDateTime < new Date()) {
-            alert("Não é permitido agendar em um horário que já passou.");
+            // TEXTO ALTERADO AQUI
+            alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
@@ -167,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.editBooking = (id, title, desc, date, time) => {
-        // VALIDAÇÃO: Impede editar agendamento que já passou
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         if (slotDateTime < new Date()) {
             alert("Este agendamento já passou e não pode ser alterado.");
@@ -210,27 +207,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const duration = document.getElementById('schedule-duration').value;
         if (!name || !timeVal) return;
 
-        // Calcula as datas de início e fim do novo agendamento
         const startISO = Utils.toISOWithOffset(selectedDate, timeVal);
         const endISO = Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, duration));
 
         const startDateTime = new Date(startISO);
         const endDateTime = new Date(endISO);
 
-        // VALIDAÇÃO EXTRA: Proteção caso a pessoa mude o horário dentro da modal para o passado
         if (startDateTime < new Date()) {
-            alert("O horário selecionado já passou.");
+            // TEXTO ALTERADO AQUI TAMBÉM (caso o usuário burle pela modal)
+            alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
-        // SISTEMA ANTI-CONFLITO: Varre a lista de eventos atual
         const hasConflict = currentEventsList.find(ev => {
-            if (ev.id === currentEventId) return false; // Ignora se for o evento que ele está editando
+            if (ev.id === currentEventId) return false;
 
             const evStart = new Date(ev.start.dateTime || ev.start.date);
             const evEnd = new Date(ev.end.dateTime || ev.end.date);
 
-            // Lógica de sobreposição de horário
             return (startDateTime < evEnd && endDateTime > evStart);
         });
 
@@ -239,7 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (conflictName.startsWith("Corte: ")) conflictName = conflictName.replace("Corte: ", "");
             else if (conflictName.includes(" - ")) conflictName = conflictName.split(" - ")[0];
 
-            alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} neste momento.`);
+            // TEXTO ALTERADO AQUI
+            alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} nesta mesma data e hora.`);
             return;
         }
 
