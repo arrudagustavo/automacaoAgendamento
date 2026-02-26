@@ -69,7 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const renderWeek = async () => {
-        if (!GoogleAPI.accessToken) return;
+        // Se não tem token de segurança, para tudo e volta pro login
+        if (!GoogleAPI.accessToken) {
+            document.getElementById('login-section').classList.add('active');
+            document.getElementById('scheduling-section').classList.remove('active');
+            return;
+        }
 
         const now = new Date();
         const start = new Date(currentWeekStart);
@@ -140,7 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
-        } catch (e) { console.error("Erro na agenda:", e); }
+        } catch (e) {
+            console.error("Erro na agenda:", e);
+            // Se der qualquer pane ao buscar os eventos, joga para o login na hora
+            document.getElementById('login-section').classList.add('active');
+            document.getElementById('scheduling-section').classList.remove('active');
+        }
     };
 
     window.openBookingForm = (date, time) => {
@@ -154,9 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentEventId = null;
         currentRecurringId = null;
 
-        // =====================================
-        // DEFAULTS: NOVO AGENDAMENTO
-        // =====================================
         timeInput.value = time;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
@@ -167,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isRecurringCheck = document.getElementById('is-recurring');
         if (isRecurringCheck) isRecurringCheck.checked = false;
 
-        // FIX VISUAL: Força exibição/ocultação diretamente no estilo CSS
         document.getElementById('recurrence-container').style.display = 'block';
         document.getElementById('edit-scope-container').style.display = 'none';
 
@@ -183,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
 
-        document.getElementById('btn-delete-event').style.display = 'none'; // FIX para garantir que não apareça
+        document.getElementById('btn-delete-event').style.display = 'none';
 
         modalForm.classList.remove('hidden');
     };
@@ -200,9 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRecurringId = masterId;
         timeInput.value = time;
 
-        // =====================================
-        // DEFAULTS: EDITAR AGENDAMENTO
-        // =====================================
         const durationSelect = document.getElementById('schedule-duration');
         if ([...durationSelect.options].some(opt => opt.value === String(durationMins))) {
             durationSelect.value = durationMins;
@@ -210,7 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
             durationSelect.value = "60";
         }
 
-        // FIX VISUAL: Esconde a Recorrência e Mostra Escopo se necessário
         document.getElementById('recurrence-container').style.display = 'none';
 
         if (currentRecurringId) {
@@ -243,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
 
-        document.getElementById('btn-delete-event').style.display = 'block'; // Garante que o excluir volte a aparecer
+        document.getElementById('btn-delete-event').style.display = 'block';
 
         modalForm.classList.remove('hidden');
     };
@@ -379,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autocompleteList.innerHTML = "";
     };
 
-    // LOGIN E PERSISTÊNCIA
+    // LOGIN E PERSISTÊNCIA (BLINDADOS)
     document.addEventListener('google-auth-success', async () => {
         try {
             const user = await GoogleAPI.getProfile();
@@ -394,15 +396,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error("Erro no pós-login", e); }
     });
 
+    // 🔹 LÓGICA DE INICIALIZAÇÃO CORRIGIDA
     const saved = localStorage.getItem('vitao_user');
     if (saved && saved !== "undefined") {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
-        document.getElementById('login-section').classList.remove('active');
-        document.getElementById('scheduling-section').classList.add('active');
 
+        // Verifica se a chave do Google está viva na memória
         if (GoogleAPI.accessToken) {
+            document.getElementById('login-section').classList.remove('active');
+            document.getElementById('scheduling-section').classList.add('active');
             renderWeek();
             GoogleAPI.fetchContacts();
+        } else {
+            // Se foi F5 ou matou o App, esconde a agenda e força a tela de Login
+            document.getElementById('login-section').classList.add('active');
+            document.getElementById('scheduling-section').classList.remove('active');
         }
     }
 
