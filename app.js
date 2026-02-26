@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
-    // 🔹 RELÓGIO DA LINHA VERMELHA (Atualiza a cada 1 minuto)
+    // RELÓGIO DA LINHA VERMELHA (Atualiza a cada 1 minuto)
     setInterval(() => {
         const timeLine = document.querySelector('.current-time-line');
         if (timeLine) {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 timeLine.style.top = `${topPosition}px`;
                 timeLine.style.display = 'block';
             } else {
-                timeLine.style.display = 'none'; // Esconde na madrugada
+                timeLine.style.display = 'none';
             }
         }
     }, 60000);
@@ -157,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                  </div>`;
                 });
 
-                // 🔹 INJETA A LINHA VERMELHA SE O DIA DO LOOP FOR HOJE
                 if (date.toDateString() === now.toDateString()) {
                     if (now.getHours() >= 6 && now.getHours() <= 23) {
                         const topPosition = (now.getHours() + now.getMinutes() / 60 - 6) * 60;
@@ -177,7 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openBookingForm = (date, time) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
-        if (slotDateTime < new Date()) {
+        const now = new Date();
+
+        // 🔹 FIX: Calcula o FINAL do bloco que foi clicado (+1 hora da grade)
+        // Permite abrir se o bloco clicado terminar no futuro (ex: clica 13:00 às 13:15, ele vai até 14:00, então permite).
+        const slotEndDateTime = new Date(slotDateTime.getTime() + 60 * 60 * 1000);
+
+        if (slotEndDateTime <= now) {
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
@@ -218,7 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.editBooking = (id, title, desc, date, time, masterId, durationMins) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
-        if (slotDateTime < new Date()) {
+        const now = new Date();
+
+        // 🔹 FIX: Usa a duração do corte para saber a hora exata que ele termina
+        // Permite editar se o cliente estiver na cadeira (corte ainda não terminou)
+        const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
+
+        if (slotEndDateTime <= now) {
             alert("Este agendamento já passou e não pode ser alterado.");
             return;
         }
@@ -282,10 +293,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const startISO = Utils.toISOWithOffset(selectedDate, timeVal);
         const endISO = Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, duration));
 
-        const startDateTime = new Date(startISO);
         const endDateTime = new Date(endISO);
 
-        if (startDateTime < new Date()) {
+        // 🔹 FIX: Valida o momento de Salvar baseando-se na hora que o corte TERMINA.
+        // Assim você pode salvar o corte de um walk-in que começou há 15 minutos atrás, desde que o fim dele seja no futuro.
+        if (endDateTime <= new Date()) {
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
@@ -298,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ev.id === currentEventId) return false;
             if (currentRecurringId && editScope === 'following' && ev.recurringEventId === currentRecurringId) return false;
 
+            const startDateTime = new Date(startISO);
             const evStart = new Date(ev.start.dateTime || ev.start.date);
             const evEnd = new Date(ev.end.dateTime || ev.end.date);
             return (startDateTime < evEnd && endDateTime > evStart);
@@ -403,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autocompleteList.innerHTML = "";
     };
 
-    // LOGIN E PERSISTÊNCIA
+    // LOGIN E PERSISTÊNCIA (BLINDADOS)
     document.addEventListener('google-auth-success', async () => {
         try {
             const user = await GoogleAPI.getProfile();
