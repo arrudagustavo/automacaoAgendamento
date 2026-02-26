@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // SWIPE
+    // SWIPE PARA IPHONE
     let touchStartX = 0;
     let touchEndX = 0;
     if (calendarViewport) {
@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 6) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
+                    const durationMins = Math.round((e - s) / 60000); // Calcula a duração real do evento em minutos
 
                     let displayName = ev.summary;
                     if (displayName.startsWith("Corte: ")) {
@@ -125,11 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const startTimeStr = s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     const endTimeStr = e.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-                    // 🔹 Captura o ID da série se o evento for recorrente
                     const masterId = ev.recurringEventId || '';
 
+                    // O summary e o description precisam ter aspas escapadas para não quebrar o HTML no clique
+                    const safeSummary = (ev.summary || '').replace(/'/g, "\\'");
+                    const safeDesc = (ev.description || '').replace(/'/g, "\\'");
+
                     gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; color:#fff; overflow:hidden; z-index:2; pointer-events:auto; padding:4px; line-height:1.2; box-sizing:border-box;" 
-                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${startTimeStr}', '${masterId}')">
+                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${safeSummary}','${safeDesc}', '${dateISO}', '${startTimeStr}', '${masterId}', '${durationMins}')">
                                      <span style="font-weight:800; font-size:10px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</span>
                                      <span style="font-size:8px; opacity:0.9;">${startTimeStr} - ${endTimeStr}</span>
                                  </div>`;
@@ -149,12 +153,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         selectedDate = date;
         currentEventId = null;
-        currentRecurringId = null; // Reseta o ID da série
+        currentRecurringId = null;
 
+        // =====================================
+        // DEFAULTS: NOVO AGENDAMENTO
+        // =====================================
         timeInput.value = time;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
+
+        // Duração Default = 1 hora
+        document.getElementById('schedule-duration').value = "60";
+
+        // Recorrência Default = Desmarcado e Visível
+        const isRecurringCheck = document.getElementById('is-recurring');
+        if (isRecurringCheck) isRecurringCheck.checked = false;
+        document.getElementById('recurrence-container').classList.remove('hidden');
+
+        // Alterar Agendamento Default = Oculto e Resetado para "Este Atendimento"
+        document.getElementById('edit-scope-container').classList.add('hidden');
+        const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
+        if (defaultRadio) defaultRadio.checked = true;
 
         const autocompleteList = document.getElementById('autocomplete-list');
         if (autocompleteList) {
@@ -162,18 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
             autocompleteList.classList.add('hidden');
         }
 
-        // 🔹 Configura a view para "Novo Evento"
-        document.getElementById('recurrence-container').classList.remove('hidden');
-        document.getElementById('is-recurring').checked = false;
-        document.getElementById('edit-scope-container').classList.add('hidden');
-
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
         document.getElementById('btn-delete-event').classList.add('hidden');
         modalForm.classList.remove('hidden');
     };
 
-    window.editBooking = (id, title, desc, date, time, masterId) => {
+    window.editBooking = (id, title, desc, date, time, masterId, durationMins) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         if (slotDateTime < new Date()) {
             alert("Este agendamento já passou e não pode ser alterado.");
@@ -182,8 +197,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentEventId = id;
         selectedDate = date;
-        currentRecurringId = masterId; // Guarda se faz parte de uma série
+        currentRecurringId = masterId;
         timeInput.value = time;
+
+        // =====================================
+        // DEFAULTS: EDITAR AGENDAMENTO
+        // =====================================
+        // Tenta preencher a duração real, se não achar, joga pro default de 60
+        const durationSelect = document.getElementById('schedule-duration');
+        if ([...durationSelect.options].some(opt => opt.value === String(durationMins))) {
+            durationSelect.value = durationMins;
+        } else {
+            durationSelect.value = "60";
+        }
+
+        // Esconde o checkbox de criar recorrência
+        document.getElementById('recurrence-container').classList.add('hidden');
+
+        // Reseta o radio button sempre para "Este Atendimento"
+        const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
+        if (defaultRadio) defaultRadio.checked = true;
+
+        // Mostra a caixa de edição de série apenas se for um evento recorrente
+        if (currentRecurringId) {
+            document.getElementById('edit-scope-container').classList.remove('hidden');
+        } else {
+            document.getElementById('edit-scope-container').classList.add('hidden');
+        }
 
         let name = title;
         if (title.startsWith("Corte: ")) {
@@ -201,15 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autocompleteList) {
             autocompleteList.innerHTML = "";
             autocompleteList.classList.add('hidden');
-        }
-
-        // 🔹 Configura a view para "Editar Evento"
-        document.getElementById('recurrence-container').classList.add('hidden');
-        if (currentRecurringId) {
-            document.getElementById('edit-scope-container').classList.remove('hidden');
-            document.querySelector('input[name="edit-scope"][value="single"]').checked = true;
-        } else {
-            document.getElementById('edit-scope-container').classList.add('hidden');
         }
 
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
@@ -242,7 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // ANTI-CONFLITO
         const hasConflict = currentEventsList.find(ev => {
             if (ev.id === currentEventId) return false;
-            // Ignora conflitos com a própria série se estamos alterando a série
             if (currentRecurringId && editScope === 'following' && ev.recurringEventId === currentRecurringId) return false;
 
             const evStart = new Date(ev.start.dateTime || ev.start.date);
@@ -267,19 +297,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
             };
 
-            // 🔹 Regras de Recorrência
             if (!currentEventId && isRecurring) {
-                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY']; // Cria nova série
+                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY'];
             } else if (currentEventId && currentRecurringId && editScope === 'following') {
-                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY']; // Regrava a série daqui pra frente
+                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY'];
             }
 
-            // Deleta o evento/série antigo antes de salvar o novo
             if (currentEventId) {
                 if (currentRecurringId && editScope === 'following') {
-                    await GoogleAPI.deleteEvent(currentRecurringId); // Apaga a série mestre inteira
+                    await GoogleAPI.deleteEvent(currentRecurringId);
                 } else {
-                    await GoogleAPI.deleteEvent(currentEventId); // Apaga só esse corte isolado
+                    await GoogleAPI.deleteEvent(currentEventId);
                 }
             }
 
@@ -395,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-delete-event').onclick = async () => {
         if (confirm("Excluir agendamento?")) {
             const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
-            // Se ele pediu pra excluir e marcou "Este e os seguintes", apaga a série. Se não, apaga só o do dia.
             if (currentRecurringId && editScope === 'following') {
                 await GoogleAPI.deleteEvent(currentRecurringId);
             } else {
