@@ -84,6 +84,33 @@
                     </select>
                 </div>
 
+                <div class="input-card" id="recurrence-container" style="padding: 15px;">
+                    <label
+                        style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
+                        <input type="checkbox" id="is-recurring"
+                            style="width: 20px; height: 20px; accent-color: var(--gold);">
+                        Recorrência Semanal
+                    </label>
+                </div>
+
+                <div class="input-card hidden" id="edit-scope-container" style="padding: 15px;">
+                    <label style="margin-bottom: 12px;">ALTERAR AGENDAMENTO RECORRENTE</label>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
+                            <input type="radio" name="edit-scope" value="single" checked
+                                style="width: 18px; height: 18px; accent-color: var(--gold);">
+                            Este atendimento
+                        </label>
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
+                            <input type="radio" name="edit-scope" value="following"
+                                style="width: 18px; height: 18px; accent-color: var(--gold);">
+                            Este e os eventos Seguintes
+                        </label>
+                    </div>
+                </div>
+
                 <div class="grid-2-btns">
                     <button id="btn-cancel-form" class="btn-secondary">VOLTAR</button>
                     <button id="btn-schedule" class="btn-action-gold">AGENDAR</button>

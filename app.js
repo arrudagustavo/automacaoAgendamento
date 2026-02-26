@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null;
+    let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null, currentRecurringId = null;
     let currentEventsList = [];
 
     let currentWeekStart = new Date();
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // SWIPE PARA IPHONE
+    // SWIPE
     let touchStartX = 0;
     let touchEndX = 0;
     if (calendarViewport) {
@@ -61,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // GERA HORÁRIOS DA GRADE
     for (let i = 6; i <= 23; i++) {
         const div = document.createElement('div');
         div.className = 'time-marker';
@@ -126,8 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const startTimeStr = s.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     const endTimeStr = e.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
+                    // 🔹 Captura o ID da série se o evento for recorrente
+                    const masterId = ev.recurringEventId || '';
+
                     gridHTML += `<div class="event-card" style="top:${top}px; height:${height}px; background:rgba(3,155,229,0.3); border-left:3px solid #039BE5; position:absolute; left:2px; right:2px; border-radius:4px; color:#fff; overflow:hidden; z-index:2; pointer-events:auto; padding:4px; line-height:1.2; box-sizing:border-box;" 
-                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${startTimeStr}')">
+                                     onclick="event.stopPropagation(); window.editBooking('${ev.id}','${ev.summary}','${ev.description || ''}', '${dateISO}', '${startTimeStr}', '${masterId}')">
                                      <span style="font-weight:800; font-size:10px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayName}</span>
                                      <span style="font-size:8px; opacity:0.9;">${startTimeStr} - ${endTimeStr}</span>
                                  </div>`;
@@ -141,12 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openBookingForm = (date, time) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         if (slotDateTime < new Date()) {
-            // TEXTO ALTERADO AQUI
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
-        selectedDate = date; currentEventId = null;
+        selectedDate = date;
+        currentEventId = null;
+        currentRecurringId = null; // Reseta o ID da série
+
         timeInput.value = time;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
@@ -158,20 +162,27 @@ document.addEventListener('DOMContentLoaded', () => {
             autocompleteList.classList.add('hidden');
         }
 
+        // 🔹 Configura a view para "Novo Evento"
+        document.getElementById('recurrence-container').classList.remove('hidden');
+        document.getElementById('is-recurring').checked = false;
+        document.getElementById('edit-scope-container').classList.add('hidden');
+
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
         document.getElementById('btn-delete-event').classList.add('hidden');
         modalForm.classList.remove('hidden');
     };
 
-    window.editBooking = (id, title, desc, date, time) => {
+    window.editBooking = (id, title, desc, date, time, masterId) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         if (slotDateTime < new Date()) {
             alert("Este agendamento já passou e não pode ser alterado.");
             return;
         }
 
-        currentEventId = id; selectedDate = date;
+        currentEventId = id;
+        selectedDate = date;
+        currentRecurringId = masterId; // Guarda se faz parte de uma série
         timeInput.value = time;
 
         let name = title;
@@ -182,16 +193,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.getElementById('client-name').value = name;
-
         const rawPhone = desc.replace("Tel: ", "");
         document.getElementById('client-phone').value = formatPhoneForInput(rawPhone);
-
         document.getElementById('client-search').value = name;
 
         const autocompleteList = document.getElementById('autocomplete-list');
         if (autocompleteList) {
             autocompleteList.innerHTML = "";
             autocompleteList.classList.add('hidden');
+        }
+
+        // 🔹 Configura a view para "Editar Evento"
+        document.getElementById('recurrence-container').classList.add('hidden');
+        if (currentRecurringId) {
+            document.getElementById('edit-scope-container').classList.remove('hidden');
+            document.querySelector('input[name="edit-scope"][value="single"]').checked = true;
+        } else {
+            document.getElementById('edit-scope-container').classList.add('hidden');
         }
 
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
@@ -214,17 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDateTime = new Date(endISO);
 
         if (startDateTime < new Date()) {
-            // TEXTO ALTERADO AQUI TAMBÉM (caso o usuário burle pela modal)
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
+        const isRecurring = document.getElementById('is-recurring').checked;
+        const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
+
+        // ANTI-CONFLITO
         const hasConflict = currentEventsList.find(ev => {
             if (ev.id === currentEventId) return false;
+            // Ignora conflitos com a própria série se estamos alterando a série
+            if (currentRecurringId && editScope === 'following' && ev.recurringEventId === currentRecurringId) return false;
 
             const evStart = new Date(ev.start.dateTime || ev.start.date);
             const evEnd = new Date(ev.end.dateTime || ev.end.date);
-
             return (startDateTime < evEnd && endDateTime > evStart);
         });
 
@@ -233,28 +255,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (conflictName.startsWith("Corte: ")) conflictName = conflictName.replace("Corte: ", "");
             else if (conflictName.includes(" - ")) conflictName = conflictName.split(" - ")[0];
 
-            // TEXTO ALTERADO AQUI
             alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} nesta mesma data e hora.`);
             return;
         }
 
         try {
-            if (currentEventId) await GoogleAPI.deleteEvent(currentEventId);
-            await GoogleAPI.createEvent({
+            const eventPayload = {
                 summary: `${name} - ${phone}`,
                 description: `Tel: ${phone}`,
                 start: { dateTime: startISO, timeZone: 'America/Sao_Paulo' },
                 end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
-            });
+            };
+
+            // 🔹 Regras de Recorrência
+            if (!currentEventId && isRecurring) {
+                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY']; // Cria nova série
+            } else if (currentEventId && currentRecurringId && editScope === 'following') {
+                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY']; // Regrava a série daqui pra frente
+            }
+
+            // Deleta o evento/série antigo antes de salvar o novo
+            if (currentEventId) {
+                if (currentRecurringId && editScope === 'following') {
+                    await GoogleAPI.deleteEvent(currentRecurringId); // Apaga a série mestre inteira
+                } else {
+                    await GoogleAPI.deleteEvent(currentEventId); // Apaga só esse corte isolado
+                }
+            }
+
+            await GoogleAPI.createEvent(eventPayload);
+
             urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${selectedDate.split('-').reverse().join('/')} às ${timeVal}. Tamo junto!`)}`;
             modalForm.classList.add('hidden');
             document.getElementById('modal-success').classList.remove('hidden');
         } catch (e) { alert("Erro ao salvar."); }
     };
 
-    // ==========================================
     // AUTO-COMPLETE PODEROSO
-    // ==========================================
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -281,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (GoogleAPI.contacts.length > 0) {
             GoogleAPI.contacts.forEach(c => {
                 const nameMatch = c.name && c.name.toLowerCase().includes(q);
-
                 const qNum = q.replace(/\D/g, '');
                 const phoneMatch = c.phones && c.phones.some(p => {
                     if (!p) return false;
@@ -316,9 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autocompleteList.innerHTML = "";
     };
 
-    // ==========================================
     // LOGIN E PERSISTÊNCIA
-    // ==========================================
     document.addEventListener('google-auth-success', async () => {
         try {
             const user = await GoogleAPI.getProfile();
@@ -330,9 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await GoogleAPI.fetchContacts();
             renderWeek();
-        } catch (e) {
-            console.error("Erro no pós-login", e);
-        }
+        } catch (e) { console.error("Erro no pós-login", e); }
     });
 
     const saved = localStorage.getItem('vitao_user');
@@ -360,5 +392,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = urlWhatsAppFinal;
     };
 
-    document.getElementById('btn-delete-event').onclick = async () => { if (confirm("Excluir agendamento?")) { await GoogleAPI.deleteEvent(currentEventId); modalForm.classList.add('hidden'); renderWeek(); } };
+    document.getElementById('btn-delete-event').onclick = async () => {
+        if (confirm("Excluir agendamento?")) {
+            const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
+            // Se ele pediu pra excluir e marcou "Este e os seguintes", apaga a série. Se não, apaga só o do dia.
+            if (currentRecurringId && editScope === 'following') {
+                await GoogleAPI.deleteEvent(currentRecurringId);
+            } else {
+                await GoogleAPI.deleteEvent(currentEventId);
+            }
+            modalForm.classList.add('hidden');
+            renderWeek();
+        }
+    };
 });
