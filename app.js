@@ -14,6 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
+    // 🔹 RELÓGIO DA LINHA VERMELHA (Atualiza a cada 1 minuto)
+    setInterval(() => {
+        const timeLine = document.querySelector('.current-time-line');
+        if (timeLine) {
+            const now = new Date();
+            if (now.getHours() >= 6 && now.getHours() <= 23) {
+                const topPosition = (now.getHours() + now.getMinutes() / 60 - 6) * 60;
+                timeLine.style.top = `${topPosition}px`;
+                timeLine.style.display = 'block';
+            } else {
+                timeLine.style.display = 'none'; // Esconde na madrugada
+            }
+        }
+    }, 60000);
+
     const formatPhoneForInput = (phoneRaw) => {
         if (!phoneRaw) return "";
         let cleaned = phoneRaw.replace(/\D/g, '');
@@ -69,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const renderWeek = async () => {
-        // Se não tem token de segurança, para tudo e volta pro login
         if (!GoogleAPI.accessToken) {
             document.getElementById('login-section').classList.add('active');
             document.getElementById('scheduling-section').classList.remove('active');
@@ -142,12 +156,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                      <span style="font-size:8px; opacity:0.9;">${startTimeStr} - ${endTimeStr}</span>
                                  </div>`;
                 });
+
+                // 🔹 INJETA A LINHA VERMELHA SE O DIA DO LOOP FOR HOJE
+                if (date.toDateString() === now.toDateString()) {
+                    if (now.getHours() >= 6 && now.getHours() <= 23) {
+                        const topPosition = (now.getHours() + now.getMinutes() / 60 - 6) * 60;
+                        gridHTML += `<div class="current-time-line" style="top:${topPosition}px;"></div>`;
+                    }
+                }
+
                 gridHTML += `</div>`;
             });
             daysWrapper.innerHTML = gridHTML;
         } catch (e) {
             console.error("Erro na agenda:", e);
-            // Se der qualquer pane ao buscar os eventos, joga para o login na hora
             document.getElementById('login-section').classList.add('active');
             document.getElementById('scheduling-section').classList.remove('active');
         }
@@ -381,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autocompleteList.innerHTML = "";
     };
 
-    // LOGIN E PERSISTÊNCIA (BLINDADOS)
+    // LOGIN E PERSISTÊNCIA
     document.addEventListener('google-auth-success', async () => {
         try {
             const user = await GoogleAPI.getProfile();
@@ -396,19 +418,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error("Erro no pós-login", e); }
     });
 
-    // 🔹 LÓGICA DE INICIALIZAÇÃO CORRIGIDA
     const saved = localStorage.getItem('vitao_user');
     if (saved && saved !== "undefined") {
         document.getElementById('user-name').textContent = JSON.parse(saved).name;
 
-        // Verifica se a chave do Google está viva na memória
         if (GoogleAPI.accessToken) {
             document.getElementById('login-section').classList.remove('active');
             document.getElementById('scheduling-section').classList.add('active');
             renderWeek();
             GoogleAPI.fetchContacts();
         } else {
-            // Se foi F5 ou matou o App, esconde a agenda e força a tela de Login
             document.getElementById('login-section').classList.add('active');
             document.getElementById('scheduling-section').classList.remove('active');
         }

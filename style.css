@@ -130,7 +130,6 @@ body {
     width: 100%;
 }
 
-/* FIX DO 06:00: Padding top para não cortar a hora e bottom para não grudar no rodapé */
 .calendar-grid {
     display: grid;
     grid-template-columns: 45px repeat(7, 1fr);
@@ -216,6 +215,28 @@ body {
     overflow: hidden;
     z-index: 2;
     pointer-events: auto;
+}
+
+/* 🔹 LINHA VERMELHA DO TEMPO ATUAL */
+.current-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #ea4335;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.current-time-line::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ea4335;
 }
 
 /* ========================================== */
