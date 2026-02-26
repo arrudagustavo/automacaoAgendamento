@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const e = new Date(ev.end.dateTime);
                     const top = (s.getHours() + s.getMinutes() / 60 - 6) * 60;
                     const height = (e.getHours() + e.getMinutes() / 60 - s.getHours() - s.getMinutes() / 60) * 60;
-                    const durationMins = Math.round((e - s) / 60000); // Calcula a duração real do evento em minutos
+                    const durationMins = Math.round((e - s) / 60000);
 
                     let displayName = ev.summary;
                     if (displayName.startsWith("Corte: ")) {
@@ -128,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const masterId = ev.recurringEventId || '';
 
-                    // O summary e o description precisam ter aspas escapadas para não quebrar o HTML no clique
                     const safeSummary = (ev.summary || '').replace(/'/g, "\\'");
                     const safeDesc = (ev.description || '').replace(/'/g, "\\'");
 
@@ -163,16 +162,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
 
-        // Duração Default = 1 hora
         document.getElementById('schedule-duration').value = "60";
 
-        // Recorrência Default = Desmarcado e Visível
         const isRecurringCheck = document.getElementById('is-recurring');
         if (isRecurringCheck) isRecurringCheck.checked = false;
-        document.getElementById('recurrence-container').classList.remove('hidden');
 
-        // Alterar Agendamento Default = Oculto e Resetado para "Este Atendimento"
-        document.getElementById('edit-scope-container').classList.add('hidden');
+        // FIX VISUAL: Força exibição/ocultação diretamente no estilo CSS
+        document.getElementById('recurrence-container').style.display = 'block';
+        document.getElementById('edit-scope-container').style.display = 'none';
+
         const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
         if (defaultRadio) defaultRadio.checked = true;
 
@@ -184,7 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
-        document.getElementById('btn-delete-event').classList.add('hidden');
+
+        document.getElementById('btn-delete-event').style.display = 'none'; // FIX para garantir que não apareça
+
         modalForm.classList.remove('hidden');
     };
 
@@ -203,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // =====================================
         // DEFAULTS: EDITAR AGENDAMENTO
         // =====================================
-        // Tenta preencher a duração real, se não achar, joga pro default de 60
         const durationSelect = document.getElementById('schedule-duration');
         if ([...durationSelect.options].some(opt => opt.value === String(durationMins))) {
             durationSelect.value = durationMins;
@@ -211,19 +210,17 @@ document.addEventListener('DOMContentLoaded', () => {
             durationSelect.value = "60";
         }
 
-        // Esconde o checkbox de criar recorrência
-        document.getElementById('recurrence-container').classList.add('hidden');
+        // FIX VISUAL: Esconde a Recorrência e Mostra Escopo se necessário
+        document.getElementById('recurrence-container').style.display = 'none';
 
-        // Reseta o radio button sempre para "Este Atendimento"
+        if (currentRecurringId) {
+            document.getElementById('edit-scope-container').style.display = 'block';
+        } else {
+            document.getElementById('edit-scope-container').style.display = 'none';
+        }
+
         const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
         if (defaultRadio) defaultRadio.checked = true;
-
-        // Mostra a caixa de edição de série apenas se for um evento recorrente
-        if (currentRecurringId) {
-            document.getElementById('edit-scope-container').classList.remove('hidden');
-        } else {
-            document.getElementById('edit-scope-container').classList.add('hidden');
-        }
 
         let name = title;
         if (title.startsWith("Corte: ")) {
@@ -245,7 +242,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
-        document.getElementById('btn-delete-event').classList.remove('hidden');
+
+        document.getElementById('btn-delete-event').style.display = 'block'; // Garante que o excluir volte a aparecer
+
         modalForm.classList.remove('hidden');
     };
 
