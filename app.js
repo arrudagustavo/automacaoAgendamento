@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 🔹 GATILHO IMEDIATO (ANTI-PISCADA): Esconde o login instantaneamente se houver sessão válida
+    // GATILHO IMEDIATO (ANTI-PISCADA)
     const checkInitialState = () => {
         const savedUser = localStorage.getItem('vitao_user');
         const savedToken = localStorage.getItem('google_access_token');
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
-    // 🔹 SISTEMA DE TOAST (Notificações Flutuantes)
+    // SISTEMA DE TOAST (Notificações Flutuantes)
     const toastContainer = document.createElement('div');
     toastContainer.id = 'toast-container';
     document.body.appendChild(toastContainer);
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     };
 
-    // 🔹 MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Design Premium)
+    // MODAL DE CONFIRMAÇÃO CUSTOMIZADO
     window.showConfirm = (msg, onConfirm) => {
         const overlay = document.createElement('div');
         overlay.className = 'modal';
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    // 🔹 MÁSCARA DO CELULAR: Permite apenas números!
+    // MÁSCARA DO CELULAR: Permite apenas números!
     document.getElementById('client-phone').addEventListener('input', function (e) {
         this.value = this.value.replace(/\D/g, '');
     });
@@ -253,7 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotEndDateTime = new Date(slotDateTime.getTime() + 60 * 60 * 1000);
 
         if (slotEndDateTime <= now) {
-            showToast("Não é permitido agendar para um horário que já passou.", "error");
+            // 🔹 RESTAURADO: Alerta restrito com a frase original
+            alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
@@ -298,7 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
 
         if (slotEndDateTime <= now) {
-            showToast("Este agendamento já passou e não pode ser alterado.", "error");
+            // 🔹 RESTAURADO: Alerta restrito com a frase original
+            alert("Este agendamento já passou e não pode ser alterado.");
             return;
         }
 
@@ -384,7 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDateTime = new Date(endISO);
 
         if (endDateTime <= new Date()) {
-            showToast("O horário de término já passou.", "error");
+            // 🔹 RESTAURADO: Alerta restrito com a frase original
+            alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
@@ -406,7 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (conflictName.startsWith("Corte: ")) conflictName = conflictName.replace("Corte: ", "");
             else if (conflictName.includes(" - ")) conflictName = conflictName.split(" - ")[0];
 
-            showToast(`Conflito: Já existe um agendamento para ${conflictName}.`, "error");
+            // 🔹 RESTAURADO: Alerta restrito com a frase original
+            alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} nesta mesma data e hora.`);
             return;
         }
 
