@@ -5,8 +5,11 @@ const GoogleAPI = {
 
     init() {
         this.client = google.accounts.oauth2.initTokenClient({
-            client_id: '602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com', // MANTENHA O SEU CLIENT ID AQUI
-            scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/contacts.readonly',
+            client_id: 'SEU_CLIENT_ID_AQUI.apps.googleusercontent.com', // MANTENHA O SEU CLIENT ID AQUI
+
+            // 🔹 FIX CIRÚRGICO: Adicionado o escopo "userinfo.profile" para o Google liberar a leitura do nome do Vitor
+            scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/userinfo.profile',
+
             callback: (response) => {
                 if (response.error !== undefined) {
                     console.error("Erro na autenticação:", response);
@@ -22,11 +25,10 @@ const GoogleAPI = {
         this.client.requestAccessToken({ prompt: '' });
     },
 
-    // 🔹 INTERCEPTADOR INTELIGENTE (AUTO-LOGOUT)
+    // INTERCEPTADOR INTELIGENTE (AUTO-LOGOUT)
     async _fetch(endpoint, options = {}) {
         if (!this.accessToken) return null;
 
-        // Verifica se é uma URL completa (como a do People API) ou se precisa do endereço padrão (Agenda)
         const url = endpoint.startsWith('http') ? endpoint : `https://www.googleapis.com${endpoint}`;
 
         if (!options.headers) options.headers = {};
@@ -57,7 +59,6 @@ const GoogleAPI = {
 
     async fetchContacts() {
         try {
-            // FIX: Passando a URL completa e exata da API de Contatos
             const data = await this._fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=1000');
 
             if (data && data.connections) {
