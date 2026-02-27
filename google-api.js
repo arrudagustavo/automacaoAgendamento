@@ -5,7 +5,7 @@ const GoogleAPI = {
 
     init() {
         this.client = google.accounts.oauth2.initTokenClient({
-            client_id: 'SEU_CLIENT_ID_AQUI.apps.googleusercontent.com', // MANTENHA O SEU CLIENT ID AQUI
+            client_id: '602468657261-3s1loggqvqd5giljsun78lcskml0nm4s.apps.googleusercontent.com', // MANTENHA O SEU CLIENT ID AQUI
 
             // 🔹 FIX CIRÚRGICO: Adicionado o escopo "userinfo.profile" para o Google liberar a leitura do nome do Vitor
             scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/userinfo.profile',
