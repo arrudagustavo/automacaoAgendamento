@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
-    // RELÓGIO DA LINHA VERMELHA (Atualiza a cada 1 minuto)
+    // RELÓGIO DA LINHA VERMELHA 
     setInterval(() => {
         const timeLine = document.querySelector('.current-time-line');
         if (timeLine) {
@@ -114,6 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const timeMin = start.toISOString();
             const timeMax = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            // Aqui acontece a busca. Se a permissão não foi dada, vai estourar pro CATCH lá embaixo!
             const events = await GoogleAPI.listEventsRange(timeMin, timeMax);
 
             currentEventsList = events;
@@ -169,6 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
             daysWrapper.innerHTML = gridHTML;
         } catch (e) {
             console.error("Erro na agenda:", e);
+            // 🔹 ALERTA VISUAL ADICIONADO AQUI!
+            alert("⚠️ Acesso Negado à Agenda!\n\nPor favor, faça o login novamente e certifique-se de MARCAR TODAS AS CAIXINHAS (Agenda e Contatos) na tela do Google.\n\nDetalhe técnico: " + e.message);
+
             document.getElementById('login-section').classList.add('active');
             document.getElementById('scheduling-section').classList.remove('active');
         }
@@ -177,9 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openBookingForm = (date, time) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         const now = new Date();
-
-        // 🔹 FIX: Calcula o FINAL do bloco que foi clicado (+1 hora da grade)
-        // Permite abrir se o bloco clicado terminar no futuro (ex: clica 13:00 às 13:15, ele vai até 14:00, então permite).
         const slotEndDateTime = new Date(slotDateTime.getTime() + 60 * 60 * 1000);
 
         if (slotEndDateTime <= now) {
@@ -224,9 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editBooking = (id, title, desc, date, time, masterId, durationMins) => {
         const slotDateTime = new Date(Utils.toISOWithOffset(date, time));
         const now = new Date();
-
-        // 🔹 FIX: Usa a duração do corte para saber a hora exata que ele termina
-        // Permite editar se o cliente estiver na cadeira (corte ainda não terminou)
         const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
 
         if (slotEndDateTime <= now) {
@@ -295,8 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const endDateTime = new Date(endISO);
 
-        // 🔹 FIX: Valida o momento de Salvar baseando-se na hora que o corte TERMINA.
-        // Assim você pode salvar o corte de um walk-in que começou há 15 minutos atrás, desde que o fim dele seja no futuro.
         if (endDateTime <= new Date()) {
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
@@ -416,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autocompleteList.innerHTML = "";
     };
 
-    // LOGIN E PERSISTÊNCIA (BLINDADOS)
+    // LOGIN E PERSISTÊNCIA 
     document.addEventListener('google-auth-success', async () => {
         try {
             const user = await GoogleAPI.getProfile();
@@ -428,7 +425,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await GoogleAPI.fetchContacts();
             renderWeek();
-        } catch (e) { console.error("Erro no pós-login", e); }
+        } catch (e) {
+            console.error("Erro no pós-login", e);
+            // 🔹 ALERTA ADICIONADO AQUI TAMBÉM
+            alert("Erro na autorização do Google. Verifique sua conexão e permissões.");
+        }
     });
 
     const saved = localStorage.getItem('vitao_user');
