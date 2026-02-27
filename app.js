@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 🔹 GATILHO IMEDIATO (ANTI-PISCADA): Esconde o login instantaneamente se houver sessão válida
+    const checkInitialState = () => {
+        const savedUser = localStorage.getItem('vitao_user');
+        const savedToken = localStorage.getItem('google_access_token');
+        const tokenExpiry = localStorage.getItem('google_token_expiry');
+
+        if (savedUser && savedUser !== "undefined" && savedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
+            document.getElementById('login-section').classList.remove('active');
+            document.getElementById('scheduling-section').classList.add('active');
+            document.getElementById('user-name').textContent = JSON.parse(savedUser).name;
+        }
+    };
+    checkInitialState();
+
     let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null, currentRecurringId = null;
     let currentEventsList = [];
 
@@ -83,11 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return cleaned;
     };
 
-    // 🔹 LÓGICA DE INICIALIZAÇÃO BLINDADA (Proteção contra F5)
     const checkLoginState = () => {
         const saved = localStorage.getItem('vitao_user');
         if (saved && saved !== "undefined") {
-            document.getElementById('user-name').textContent = JSON.parse(saved).name;
             if (GoogleAPI.accessToken) {
                 document.getElementById('login-section').classList.remove('active');
                 document.getElementById('scheduling-section').classList.add('active');
@@ -103,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initApp = () => {
         if (typeof google !== 'undefined' && typeof GoogleAPI !== 'undefined') {
             GoogleAPI.init();
-            checkLoginState(); // Valida se tem token salvo e abre direto
+            checkLoginState();
         } else {
             setTimeout(initApp, 200);
         }
@@ -249,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentEventId = null;
         currentRecurringId = null;
 
-        // Reseta as bordas de erro
         document.getElementById('client-name').parentElement.style.border = "1px solid #333";
         document.getElementById('client-phone').parentElement.style.border = "1px solid #333";
 
@@ -296,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRecurringId = masterId;
         timeInput.value = time;
 
-        // Reseta as bordas de erro
         document.getElementById('client-name').parentElement.style.border = "1px solid #333";
         document.getElementById('client-phone').parentElement.style.border = "1px solid #333";
 
@@ -351,7 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeVal = timeInput.value;
         const duration = document.getElementById('schedule-duration').value;
 
-        // 🔹 VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS
         nameEl.parentElement.style.border = "1px solid #333";
         phoneEl.parentElement.style.border = "1px solid #333";
         let hasError = false;
@@ -528,7 +537,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = urlWhatsAppFinal;
     };
 
-    // 🔹 LÓGICA DE EXCLUSÃO COM MODAL PREMIUM E TOAST
     document.getElementById('btn-delete-event').onclick = () => {
         showConfirm("Tem certeza que deseja excluir este agendamento?", async () => {
             try {
