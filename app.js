@@ -14,7 +14,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('schedule-time');
     const calendarViewport = document.querySelector('.calendar-viewport');
 
-    // RELÓGIO DA LINHA VERMELHA 
+    // 🔹 SISTEMA DE TOAST (Notificações Flutuantes)
+    const toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    document.body.appendChild(toastContainer);
+
+    window.showToast = (message, type = 'success') => {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    };
+
+    // 🔹 MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Design Premium)
+    window.showConfirm = (msg, onConfirm) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal';
+        overlay.style.zIndex = '3000';
+        overlay.innerHTML = `
+            <div class="dark-card" style="text-align: center; max-width: 320px; padding: 25px;">
+                <h3 style="color: var(--gold); font-size: 18px; margin-bottom: 10px;">Atenção</h3>
+                <p style="color: #ccc; font-size: 14px; margin-bottom: 25px;">${msg}</p>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-confirm-no" class="btn-secondary" style="padding: 12px; font-size: 12px;">CANCELAR</button>
+                    <button id="btn-confirm-yes" class="btn-action-gold" style="padding: 12px; font-size: 12px; background: #ea4335; color: #fff; border:none;">SIM, EXCLUIR</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('btn-confirm-no').onclick = () => overlay.remove();
+        document.getElementById('btn-confirm-yes').onclick = () => {
+            overlay.remove();
+            onConfirm();
+        };
+    };
+
+    // 🔹 MÁSCARA DO CELULAR: Permite apenas números!
+    document.getElementById('client-phone').addEventListener('input', function (e) {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
     setInterval(() => {
         const timeLine = document.querySelector('.current-time-line');
         if (timeLine) {
@@ -38,9 +83,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return cleaned;
     };
 
+    // 🔹 LÓGICA DE INICIALIZAÇÃO BLINDADA (Proteção contra F5)
+    const checkLoginState = () => {
+        const saved = localStorage.getItem('vitao_user');
+        if (saved && saved !== "undefined") {
+            document.getElementById('user-name').textContent = JSON.parse(saved).name;
+            if (GoogleAPI.accessToken) {
+                document.getElementById('login-section').classList.remove('active');
+                document.getElementById('scheduling-section').classList.add('active');
+                renderWeek();
+                GoogleAPI.fetchContacts();
+            } else {
+                document.getElementById('login-section').classList.add('active');
+                document.getElementById('scheduling-section').classList.remove('active');
+            }
+        }
+    };
+
     const initApp = () => {
         if (typeof google !== 'undefined' && typeof GoogleAPI !== 'undefined') {
             GoogleAPI.init();
+            checkLoginState(); // Valida se tem token salvo e abre direto
         } else {
             setTimeout(initApp, 200);
         }
@@ -51,11 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAuth.addEventListener('click', (e) => {
             e.preventDefault();
             if (GoogleAPI.client) GoogleAPI.requestToken();
-            else alert("Aguarde, conectando ao Google...");
+            else showToast("Aguarde, conectando ao Google...", "error");
         });
     }
 
-    // SWIPE PARA IPHONE
     let touchStartX = 0;
     let touchEndX = 0;
     if (calendarViewport) {
@@ -114,8 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const timeMin = start.toISOString();
             const timeMax = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-            // Aqui acontece a busca. Se a permissão não foi dada, vai estourar pro CATCH lá embaixo!
             const events = await GoogleAPI.listEventsRange(timeMin, timeMax);
 
             currentEventsList = events;
@@ -148,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const endTimeStr = e.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
                     const masterId = ev.recurringEventId || '';
-
                     const safeSummary = (ev.summary || '').replace(/'/g, "\\'");
                     const safeDesc = (ev.description || '').replace(/'/g, "\\'");
 
@@ -171,9 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
             daysWrapper.innerHTML = gridHTML;
         } catch (e) {
             console.error("Erro na agenda:", e);
-            // 🔹 ALERTA VISUAL ADICIONADO AQUI!
-            alert("⚠️ Acesso Negado à Agenda!\n\nPor favor, faça o login novamente e certifique-se de MARCAR TODAS AS CAIXINHAS (Agenda e Contatos) na tela do Google.\n\nDetalhe técnico: " + e.message);
-
             document.getElementById('login-section').classList.add('active');
             document.getElementById('scheduling-section').classList.remove('active');
         }
@@ -185,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotEndDateTime = new Date(slotDateTime.getTime() + 60 * 60 * 1000);
 
         if (slotEndDateTime <= now) {
-            alert("Não é permitido agendar para uma data e/ou horário que já passou.");
+            showToast("Não é permitido agendar para um horário que já passou.", "error");
             return;
         }
 
@@ -193,11 +249,14 @@ document.addEventListener('DOMContentLoaded', () => {
         currentEventId = null;
         currentRecurringId = null;
 
+        // Reseta as bordas de erro
+        document.getElementById('client-name').parentElement.style.border = "1px solid #333";
+        document.getElementById('client-phone').parentElement.style.border = "1px solid #333";
+
         timeInput.value = time;
         document.getElementById('client-name').value = "";
         document.getElementById('client-phone').value = "";
         document.getElementById('client-search').value = "";
-
         document.getElementById('schedule-duration').value = "60";
 
         const isRecurringCheck = document.getElementById('is-recurring');
@@ -217,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Novo Agendamento";
-
         document.getElementById('btn-delete-event').style.display = 'none';
 
         modalForm.classList.remove('hidden');
@@ -229,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
 
         if (slotEndDateTime <= now) {
-            alert("Este agendamento já passou e não pode ser alterado.");
+            showToast("Este agendamento já passou e não pode ser alterado.", "error");
             return;
         }
 
@@ -237,6 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDate = date;
         currentRecurringId = masterId;
         timeInput.value = time;
+
+        // Reseta as bordas de erro
+        document.getElementById('client-name').parentElement.style.border = "1px solid #333";
+        document.getElementById('client-phone').parentElement.style.border = "1px solid #333";
 
         const durationSelect = document.getElementById('schedule-duration');
         if ([...durationSelect.options].some(opt => opt.value === String(durationMins))) {
@@ -276,33 +338,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('selected-full-date').textContent = date.split('-').reverse().join('/');
         document.getElementById('selected-slot-title').textContent = "Editar Agendamento";
-
         document.getElementById('btn-delete-event').style.display = 'block';
 
         modalForm.classList.remove('hidden');
     };
 
     document.getElementById('btn-schedule').onclick = async () => {
-        const name = document.getElementById('client-name').value;
-        const phone = document.getElementById('client-phone').value;
+        const nameEl = document.getElementById('client-name');
+        const phoneEl = document.getElementById('client-phone');
+        const name = nameEl.value.trim();
+        const phone = phoneEl.value.replace(/\D/g, '');
         const timeVal = timeInput.value;
         const duration = document.getElementById('schedule-duration').value;
-        if (!name || !timeVal) return;
+
+        // 🔹 VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS
+        nameEl.parentElement.style.border = "1px solid #333";
+        phoneEl.parentElement.style.border = "1px solid #333";
+        let hasError = false;
+
+        if (!name) {
+            nameEl.parentElement.style.border = "1px solid #ea4335";
+            hasError = true;
+        }
+        if (!phone || phone.length < 10) {
+            phoneEl.parentElement.style.border = "1px solid #ea4335";
+            hasError = true;
+        }
+
+        if (hasError) {
+            showToast("Preencha Nome e Celular corretamente.", "error");
+            return;
+        }
 
         const startISO = Utils.toISOWithOffset(selectedDate, timeVal);
         const endISO = Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, duration));
-
         const endDateTime = new Date(endISO);
 
         if (endDateTime <= new Date()) {
-            alert("Não é permitido agendar para uma data e/ou horário que já passou.");
+            showToast("O horário de término já passou.", "error");
             return;
         }
 
         const isRecurring = document.getElementById('is-recurring').checked;
         const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
 
-        // ANTI-CONFLITO
         const hasConflict = currentEventsList.find(ev => {
             if (ev.id === currentEventId) return false;
             if (currentRecurringId && editScope === 'following' && ev.recurringEventId === currentRecurringId) return false;
@@ -318,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (conflictName.startsWith("Corte: ")) conflictName = conflictName.replace("Corte: ", "");
             else if (conflictName.includes(" - ")) conflictName = conflictName.split(" - ")[0];
 
-            alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} nesta mesma data e hora.`);
+            showToast(`Conflito: Já existe um agendamento para ${conflictName}.`, "error");
             return;
         }
 
@@ -349,10 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
             urlWhatsAppFinal = `https://wa.me/55${Utils.normalizePhone(phone)}?text=${encodeURIComponent(`Fala ${name}! Seu horário está confirmado para o dia ${selectedDate.split('-').reverse().join('/')} às ${timeVal}. Tamo junto!`)}`;
             modalForm.classList.add('hidden');
             document.getElementById('modal-success').classList.remove('hidden');
-        } catch (e) { alert("Erro ao salvar."); }
+        } catch (e) { showToast("Erro ao salvar.", "error"); }
     };
 
-    // AUTO-COMPLETE PODEROSO
     const clientSearch = document.getElementById('client-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -413,7 +491,6 @@ document.addEventListener('DOMContentLoaded', () => {
         autocompleteList.innerHTML = "";
     };
 
-    // LOGIN E PERSISTÊNCIA 
     document.addEventListener('google-auth-success', async () => {
         try {
             const user = await GoogleAPI.getProfile();
@@ -427,31 +504,22 @@ document.addEventListener('DOMContentLoaded', () => {
             renderWeek();
         } catch (e) {
             console.error("Erro no pós-login", e);
-            // 🔹 ALERTA ADICIONADO AQUI TAMBÉM
-            alert("Erro na autorização do Google. Verifique sua conexão e permissões.");
+            showToast("Erro na autorização. Verifique suas permissões.", "error");
         }
     });
-
-    const saved = localStorage.getItem('vitao_user');
-    if (saved && saved !== "undefined") {
-        document.getElementById('user-name').textContent = JSON.parse(saved).name;
-
-        if (GoogleAPI.accessToken) {
-            document.getElementById('login-section').classList.remove('active');
-            document.getElementById('scheduling-section').classList.add('active');
-            renderWeek();
-            GoogleAPI.fetchContacts();
-        } else {
-            document.getElementById('login-section').classList.add('active');
-            document.getElementById('scheduling-section').classList.remove('active');
-        }
-    }
 
     document.getElementById('btn-cancel-form').onclick = () => {
         modalForm.classList.add('hidden');
         if (autocompleteList) autocompleteList.innerHTML = "";
     };
-    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('vitao_user'); location.reload(); };
+
+    document.getElementById('btn-logout').onclick = () => {
+        localStorage.removeItem('vitao_user');
+        localStorage.removeItem('google_access_token');
+        localStorage.removeItem('google_token_expiry');
+        location.reload();
+    };
+
     document.getElementById('btn-success-close').onclick = () => { document.getElementById('modal-success').classList.add('hidden'); renderWeek(); };
 
     document.getElementById('btn-open-whatsapp').onclick = () => {
@@ -460,16 +528,22 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = urlWhatsAppFinal;
     };
 
-    document.getElementById('btn-delete-event').onclick = async () => {
-        if (confirm("Excluir agendamento?")) {
-            const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
-            if (currentRecurringId && editScope === 'following') {
-                await GoogleAPI.deleteEvent(currentRecurringId);
-            } else {
-                await GoogleAPI.deleteEvent(currentEventId);
+    // 🔹 LÓGICA DE EXCLUSÃO COM MODAL PREMIUM E TOAST
+    document.getElementById('btn-delete-event').onclick = () => {
+        showConfirm("Tem certeza que deseja excluir este agendamento?", async () => {
+            try {
+                const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
+                if (currentRecurringId && editScope === 'following') {
+                    await GoogleAPI.deleteEvent(currentRecurringId);
+                } else {
+                    await GoogleAPI.deleteEvent(currentEventId);
+                }
+                modalForm.classList.add('hidden');
+                showToast("Agendamento excluído com sucesso!", "success");
+                renderWeek();
+            } catch (e) {
+                showToast("Erro ao excluir agendamento.", "error");
             }
-            modalForm.classList.add('hidden');
-            renderWeek();
-        }
+        });
     };
 });
