@@ -85,12 +85,27 @@
                 </div>
 
                 <div class="input-card" id="recurrence-container" style="padding: 15px;">
-                    <label
-                        style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
-                        <input type="checkbox" id="is-recurring"
-                            style="width: 20px; height: 20px; accent-color: var(--gold);">
-                        Recorrência Semanal
-                    </label>
+                    <label style="margin-bottom: 12px;">RECORRÊNCIA</label>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
+                            <input type="radio" name="recurrence-type" value="none" checked
+                                style="width: 18px; height: 18px; accent-color: var(--gold);">
+                            Não repetir
+                        </label>
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
+                            <input type="radio" name="recurrence-type" value="weekly"
+                                style="width: 18px; height: 18px; accent-color: var(--gold);">
+                            Semanal
+                        </label>
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: #fff; text-transform: none; margin: 0;">
+                            <input type="radio" name="recurrence-type" value="biweekly"
+                                style="width: 18px; height: 18px; accent-color: var(--gold);">
+                            Quinzenal
+                        </label>
+                    </div>
                 </div>
 
                 <div class="input-card hidden" id="edit-scope-container" style="padding: 15px;">

@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    // MÁSCARA DO CELULAR: Permite apenas números!
+    // MÁSCARA DO CELULAR
     document.getElementById('client-phone').addEventListener('input', function (e) {
         this.value = this.value.replace(/\D/g, '');
     });
@@ -253,7 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotEndDateTime = new Date(slotDateTime.getTime() + 60 * 60 * 1000);
 
         if (slotEndDateTime <= now) {
-            // 🔹 RESTAURADO: Alerta restrito com a frase original
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
@@ -271,14 +270,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-search').value = "";
         document.getElementById('schedule-duration').value = "60";
 
-        const isRecurringCheck = document.getElementById('is-recurring');
-        if (isRecurringCheck) isRecurringCheck.checked = false;
-
+        // DEFAULT: Novo Agendamento (Mostra Recorrência, Esconde Edição)
         document.getElementById('recurrence-container').style.display = 'block';
         document.getElementById('edit-scope-container').style.display = 'none';
 
-        const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
-        if (defaultRadio) defaultRadio.checked = true;
+        const defaultRecRadio = document.querySelector('input[name="recurrence-type"][value="none"]');
+        if (defaultRecRadio) defaultRecRadio.checked = true;
+
+        const defaultEditRadio = document.querySelector('input[name="edit-scope"][value="single"]');
+        if (defaultEditRadio) defaultEditRadio.checked = true;
 
         const autocompleteList = document.getElementById('autocomplete-list');
         if (autocompleteList) {
@@ -299,7 +299,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
 
         if (slotEndDateTime <= now) {
-            // 🔹 RESTAURADO: Alerta restrito com a frase original
             alert("Este agendamento já passou e não pode ser alterado.");
             return;
         }
@@ -319,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             durationSelect.value = "60";
         }
 
+        // DEFAULT: Editar Agendamento (Esconde Recorrência, Mostra Edição se for série)
         document.getElementById('recurrence-container').style.display = 'none';
 
         if (currentRecurringId) {
@@ -386,14 +386,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDateTime = new Date(endISO);
 
         if (endDateTime <= new Date()) {
-            // 🔹 RESTAURADO: Alerta restrito com a frase original
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
         }
 
-        const isRecurring = document.getElementById('is-recurring').checked;
+        const recType = document.querySelector('input[name="recurrence-type"]:checked')?.value;
         const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
 
+        // ANTI-CONFLITO
         const hasConflict = currentEventsList.find(ev => {
             if (ev.id === currentEventId) return false;
             if (currentRecurringId && editScope === 'following' && ev.recurringEventId === currentRecurringId) return false;
@@ -409,7 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (conflictName.startsWith("Corte: ")) conflictName = conflictName.replace("Corte: ", "");
             else if (conflictName.includes(" - ")) conflictName = conflictName.split(" - ")[0];
 
-            // 🔹 RESTAURADO: Alerta restrito com a frase original
             alert(`Conflito de horário!\nJá existe um agendamento para ${conflictName} nesta mesma data e hora.`);
             return;
         }
@@ -422,10 +421,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
             };
 
-            if (!currentEventId && isRecurring) {
-                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY'];
-            } else if (currentEventId && currentRecurringId && editScope === 'following') {
-                eventPayload.recurrence = ['RRULE:FREQ=WEEKLY'];
+            // 🔹 LÓGICA DE RECORRÊNCIA (Novo Formato)
+            if (!currentEventId) {
+                if (recType === 'weekly') {
+                    eventPayload.recurrence = ['RRULE:FREQ=WEEKLY'];
+                } else if (recType === 'biweekly') {
+                    eventPayload.recurrence = ['RRULE:FREQ=WEEKLY;INTERVAL=2']; // Código oficial do Google para Quinzenal
+                }
+            }
+            // 🔹 INTELIGÊNCIA NA EDIÇÃO: Busca se a série original era Semanal ou Quinzenal para não desconfigurar
+            else if (currentEventId && currentRecurringId && editScope === 'following') {
+                let originalRecurrence = ['RRULE:FREQ=WEEKLY']; // Fallback padrão
+                try {
+                    const masterEvent = await GoogleAPI._fetch(`/calendar/v3/calendars/primary/events/${currentRecurringId}`);
+                    if (masterEvent && masterEvent.recurrence) {
+                        originalRecurrence = masterEvent.recurrence;
+                    }
+                } catch (err) {
+                    console.warn("Nao foi possivel buscar a regra original, usando padrão semanal.");
+                }
+                eventPayload.recurrence = originalRecurrence;
             }
 
             if (currentEventId) {
