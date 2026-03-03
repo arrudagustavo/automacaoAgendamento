@@ -239,7 +239,7 @@ body {
 }
 
 /* ========================================== */
-/* MODAL PREMIUM RESTAURADA E SCROLL INTELIGENTE */
+/* MODAL PREMIUM RESTAURADA E COMPACTADA      */
 /* ========================================== */
 .modal {
     position: fixed;
@@ -256,55 +256,54 @@ body {
     display: none !important;
 }
 
-/* 🔹 FIX DO NOTCH: Limita a altura e permite scroll se necessário */
+/* 🔹 PADDINGS REDUZIDOS AQUI */
 .dark-card {
     background: #121212;
     border: 1px solid var(--gold);
-    padding: 35px 25px;
+    padding: 25px 20px;
     border-radius: 20px;
     width: 100%;
     max-width: 400px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 1);
-    max-height: 85vh;
+    max-height: 95vh;
     overflow-y: auto;
 }
 
 .dark-card::-webkit-scrollbar {
-    width: 4px;
+    width: 0px;
+    display: none;
 }
 
-.dark-card::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 10px;
-}
+/* Esconde a barra de rolagem visualmente */
 
 #selected-slot-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 800;
     color: #fff;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 .date-label {
-    font-size: 14px;
+    font-size: 13px;
     color: #888;
     font-weight: 600;
-    margin-bottom: 25px;
-}
-
-.input-card {
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #333;
     margin-bottom: 15px;
 }
 
+/* 🔹 BLOCOS MAIS COMPACTOS */
+.input-card {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    margin-bottom: 10px;
+}
+
 .input-card label {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--gold);
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 800;
     letter-spacing: 1px;
 }
@@ -315,12 +314,12 @@ body {
     color: #fff;
     width: 100%;
     outline: none;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .input-card input[type="time"] {
     color-scheme: dark;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
 }
 
@@ -330,7 +329,7 @@ body {
     border: none;
     outline: none;
     width: 100%;
-    font-size: 18px;
+    font-size: 16px;
     appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
@@ -344,24 +343,25 @@ body {
 .grid-2-inputs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 10px;
 }
 
 .grid-2-btns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 25px;
+    gap: 10px;
+    margin-top: 15px;
 }
 
+/* 🔹 BOTÕES MENORES E MAIS ELEGANTES */
 .btn-action-gold {
     background: var(--gold);
     color: #000;
     border: none;
-    padding: 18px;
+    padding: 14px;
     border-radius: 12px;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     cursor: pointer;
     width: 100%;
@@ -371,10 +371,10 @@ body {
     background: transparent;
     color: var(--gold);
     border: 2px solid var(--gold);
-    padding: 18px;
+    padding: 14px;
     border-radius: 12px;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     cursor: pointer;
     width: 100%;
@@ -382,11 +382,11 @@ body {
 
 .btn-delete {
     width: 100%;
-    padding: 15px;
+    padding: 10px;
     color: #ff4444;
     background: none;
     border: none;
-    margin-top: 20px;
+    margin-top: 10px;
     font-weight: 700;
     font-size: 12px;
     text-decoration: underline;
@@ -406,14 +406,14 @@ body {
 }
 
 .autocomplete-list li {
-    padding: 15px;
+    padding: 12px;
     border-bottom: 1px solid #222;
-    font-size: 14px;
+    font-size: 13px;
     color: #fff;
     cursor: pointer;
 }
 
-/* TOAST NOTIFICATIONS E VALIDAÇÃO */
+/* TOAST NOTIFICATIONS */
 #toast-container {
     position: fixed;
     bottom: 30px;

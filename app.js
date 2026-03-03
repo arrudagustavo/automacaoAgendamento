@@ -45,15 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     };
 
-    // MODAL DE CONFIRMAÇÃO CUSTOMIZADO
+    // MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Compactado)
     window.showConfirm = (msg, onConfirm) => {
         const overlay = document.createElement('div');
         overlay.className = 'modal';
         overlay.style.zIndex = '3000';
         overlay.innerHTML = `
-            <div class="dark-card" style="text-align: center; max-width: 320px; padding: 25px;">
-                <h3 style="color: var(--gold); font-size: 18px; margin-bottom: 10px;">Atenção</h3>
-                <p style="color: #ccc; font-size: 14px; margin-bottom: 25px;">${msg}</p>
+            <div class="dark-card" style="text-align: center; max-width: 320px; padding: 20px;">
+                <h3 style="color: var(--gold); font-size: 16px; margin-bottom: 10px;">Atenção</h3>
+                <p style="color: #ccc; font-size: 13px; margin-bottom: 20px;">${msg}</p>
                 <div style="display: flex; gap: 10px;">
                     <button id="btn-confirm-no" class="btn-secondary" style="padding: 12px; font-size: 12px;">CANCELAR</button>
                     <button id="btn-confirm-yes" class="btn-action-gold" style="padding: 12px; font-size: 12px; background: #ea4335; color: #fff; border:none;">SIM, EXCLUIR</button>
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    // MÁSCARA DO CELULAR
+    // MÁSCARA DO CELULAR: Permite apenas números!
     document.getElementById('client-phone').addEventListener('input', function (e) {
         this.value = this.value.replace(/\D/g, '');
     });
@@ -270,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-search').value = "";
         document.getElementById('schedule-duration').value = "60";
 
-        // DEFAULT: Novo Agendamento (Mostra Recorrência, Esconde Edição)
         document.getElementById('recurrence-container').style.display = 'block';
         document.getElementById('edit-scope-container').style.display = 'none';
 
@@ -318,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
             durationSelect.value = "60";
         }
 
-        // DEFAULT: Editar Agendamento (Esconde Recorrência, Mostra Edição se for série)
         document.getElementById('recurrence-container').style.display = 'none';
 
         if (currentRecurringId) {
@@ -393,7 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const recType = document.querySelector('input[name="recurrence-type"]:checked')?.value;
         const editScope = document.querySelector('input[name="edit-scope"]:checked')?.value;
 
-        // ANTI-CONFLITO
         const hasConflict = currentEventsList.find(ev => {
             if (ev.id === currentEventId) return false;
             if (currentRecurringId && editScope === 'following' && ev.recurringEventId === currentRecurringId) return false;
@@ -421,17 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
             };
 
-            // 🔹 LÓGICA DE RECORRÊNCIA (Novo Formato)
             if (!currentEventId) {
                 if (recType === 'weekly') {
                     eventPayload.recurrence = ['RRULE:FREQ=WEEKLY'];
                 } else if (recType === 'biweekly') {
-                    eventPayload.recurrence = ['RRULE:FREQ=WEEKLY;INTERVAL=2']; // Código oficial do Google para Quinzenal
+                    eventPayload.recurrence = ['RRULE:FREQ=WEEKLY;INTERVAL=2'];
                 }
-            }
-            // 🔹 INTELIGÊNCIA NA EDIÇÃO: Busca se a série original era Semanal ou Quinzenal para não desconfigurar
-            else if (currentEventId && currentRecurringId && editScope === 'following') {
-                let originalRecurrence = ['RRULE:FREQ=WEEKLY']; // Fallback padrão
+            } else if (currentEventId && currentRecurringId && editScope === 'following') {
+                let originalRecurrence = ['RRULE:FREQ=WEEKLY'];
                 try {
                     const masterEvent = await GoogleAPI._fetch(`/calendar/v3/calendars/primary/events/${currentRecurringId}`);
                     if (masterEvent && masterEvent.recurrence) {
