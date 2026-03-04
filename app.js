@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkInitialState();
 
     let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null, currentRecurringId = null;
+    let isEditingPastEvent = false; // 🔹 Nova variável de controle para o bloqueio de salvamento
     let currentEventsList = [];
 
     let currentWeekStart = new Date();
@@ -45,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     };
 
-    // MODAL DE CONFIRMAÇÃO CUSTOMIZADO (Compactado)
+    // MODAL DE CONFIRMAÇÃO CUSTOMIZADO
     window.showConfirm = (msg, onConfirm) => {
         const overlay = document.createElement('div');
         overlay.className = 'modal';
@@ -69,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    // MÁSCARA DO CELULAR: Permite apenas números!
+    // MÁSCARA DO CELULAR
     document.getElementById('client-phone').addEventListener('input', function (e) {
         this.value = this.value.replace(/\D/g, '');
     });
@@ -210,6 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const durationMins = Math.round((e - s) / 60000);
 
                     let displayName = ev.summary;
+                    // Limpa as tags de notificação na hora de mostrar o nome na grade
+                    displayName = displayName.replace('[CONFIRMACAO_ENVIADA]', '').replace('[LEMBRETE_ENVIADO]', '').trim();
                     if (displayName.startsWith("Corte: ")) {
                         displayName = displayName.replace("Corte: ", "");
                     } else if (displayName.includes(" - ")) {
@@ -260,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDate = date;
         currentEventId = null;
         currentRecurringId = null;
+        isEditingPastEvent = false;
 
         document.getElementById('client-name').parentElement.style.border = "1px solid #333";
         document.getElementById('client-phone').parentElement.style.border = "1px solid #333";
@@ -272,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('recurrence-container').style.display = 'block';
         document.getElementById('edit-scope-container').style.display = 'none';
+        document.getElementById('messaging-status-container').style.display = 'none'; // Esconde na criação
 
         const defaultRecRadio = document.querySelector('input[name="recurrence-type"][value="none"]');
         if (defaultRecRadio) defaultRecRadio.checked = true;
@@ -297,10 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
 
-        if (slotEndDateTime <= now) {
-            alert("Este agendamento já passou e não pode ser alterado.");
-            return;
-        }
+        // 🔹 FIX: Ao invés de bloquear a abertura, apenas registra se o evento já passou
+        isEditingPastEvent = (slotEndDateTime <= now);
 
         currentEventId = id;
         selectedDate = date;
@@ -328,11 +331,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
         if (defaultRadio) defaultRadio.checked = true;
 
-        let name = title;
-        if (title.startsWith("Corte: ")) {
-            name = title.replace("Corte: ", "");
-        } else if (title.includes(" - ")) {
-            name = title.split(" - ")[0];
+        // 🔹 VERIFICAÇÃO DE MENSAGENS (Scripts)
+        const hasConfirmacao = title.includes('[CONFIRMACAO_ENVIADA]');
+        const hasLembrete = title.includes('[LEMBRETE_ENVIADO]');
+
+        document.getElementById('messaging-status-container').style.display = 'block';
+        document.getElementById('check-confirmacao').checked = hasConfirmacao;
+        document.getElementById('check-lembrete').checked = hasLembrete;
+
+        // 🔹 Limpa o nome para não exibir as tags sujas no input
+        let name = title.replace('[CONFIRMACAO_ENVIADA]', '').replace('[LEMBRETE_ENVIADO]', '').trim();
+        if (name.startsWith("Corte: ")) {
+            name = name.replace("Corte: ", "");
+        } else if (name.includes(" - ")) {
+            name = name.split(" - ")[0];
         }
 
         document.getElementById('client-name').value = name;
@@ -354,6 +366,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('btn-schedule').onclick = async () => {
+        // 🔹 BLOQUEIO DE SALVAMENTO DE EVENTOS PASSADOS
+        if (isEditingPastEvent) {
+            alert("Este agendamento já passou e não pode ser alterado.");
+            return;
+        }
+
         const nameEl = document.getElementById('client-name');
         const phoneEl = document.getElementById('client-phone');
         const name = nameEl.value.trim();
@@ -383,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const endISO = Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, duration));
         const endDateTime = new Date(endISO);
 
+        // Bloqueia se o usuário tentou transferir um agendamento novo/presente para um horário que já passou
         if (endDateTime <= new Date()) {
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
@@ -411,8 +430,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // Se estiver editando um evento que já tem as tags, precisamos preservá-las no novo título
+            const hasConfirm = document.getElementById('check-confirmacao').checked ? ' [CONFIRMACAO_ENVIADA]' : '';
+            const hasLembrete = document.getElementById('check-lembrete').checked ? ' [LEMBRETE_ENVIADO]' : '';
+            const finalTitle = `${name} - ${phone}${hasConfirm}${hasLembrete}`;
+
             const eventPayload = {
-                summary: `${name} - ${phone}`,
+                summary: finalTitle,
                 description: `Tel: ${phone}`,
                 start: { dateTime: startISO, timeZone: 'America/Sao_Paulo' },
                 end: { dateTime: endISO, timeZone: 'America/Sao_Paulo' }
