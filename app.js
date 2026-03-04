@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkInitialState();
 
     let urlWhatsAppFinal = "", selectedDate = "", currentEventId = null, currentRecurringId = null;
-    let isEditingPastEvent = false; // 🔹 Nova variável de controle para o bloqueio de salvamento
+    let isEditingPastEvent = false;
     let currentEventsList = [];
 
     let currentWeekStart = new Date();
@@ -211,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const durationMins = Math.round((e - s) / 60000);
 
                     let displayName = ev.summary;
-                    // Limpa as tags de notificação na hora de mostrar o nome na grade
                     displayName = displayName.replace('[CONFIRMACAO_ENVIADA]', '').replace('[LEMBRETE_ENVIADO]', '').trim();
                     if (displayName.startsWith("Corte: ")) {
                         displayName = displayName.replace("Corte: ", "");
@@ -276,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('recurrence-container').style.display = 'block';
         document.getElementById('edit-scope-container').style.display = 'none';
-        document.getElementById('messaging-status-container').style.display = 'none'; // Esconde na criação
+        document.getElementById('messaging-status-container').style.display = 'none';
 
         const defaultRecRadio = document.querySelector('input[name="recurrence-type"][value="none"]');
         if (defaultRecRadio) defaultRecRadio.checked = true;
@@ -302,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const slotEndDateTime = new Date(slotDateTime.getTime() + durationMins * 60000);
 
-        // 🔹 FIX: Ao invés de bloquear a abertura, apenas registra se o evento já passou
         isEditingPastEvent = (slotEndDateTime <= now);
 
         currentEventId = id;
@@ -331,15 +329,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultRadio = document.querySelector('input[name="edit-scope"][value="single"]');
         if (defaultRadio) defaultRadio.checked = true;
 
-        // 🔹 VERIFICAÇÃO DE MENSAGENS (Scripts)
+        // 🔹 LÓGICA DE STATUS VISUAL DAS MENSAGENS (COM CORES)
         const hasConfirmacao = title.includes('[CONFIRMACAO_ENVIADA]');
         const hasLembrete = title.includes('[LEMBRETE_ENVIADO]');
 
         document.getElementById('messaging-status-container').style.display = 'block';
-        document.getElementById('check-confirmacao').checked = hasConfirmacao;
-        document.getElementById('check-lembrete').checked = hasLembrete;
 
-        // 🔹 Limpa o nome para não exibir as tags sujas no input
+        const checkConf = document.getElementById('check-confirmacao');
+        const labelConf = document.getElementById('label-confirmacao');
+        checkConf.checked = hasConfirmacao;
+        checkConf.style.opacity = hasConfirmacao ? "1" : "0.5";
+        labelConf.style.color = hasConfirmacao ? "#fff" : "#888";
+
+        const checkLemb = document.getElementById('check-lembrete');
+        const labelLemb = document.getElementById('label-lembrete');
+        checkLemb.checked = hasLembrete;
+        checkLemb.style.opacity = hasLembrete ? "1" : "0.5";
+        labelLemb.style.color = hasLembrete ? "#fff" : "#888";
+
         let name = title.replace('[CONFIRMACAO_ENVIADA]', '').replace('[LEMBRETE_ENVIADO]', '').trim();
         if (name.startsWith("Corte: ")) {
             name = name.replace("Corte: ", "");
@@ -366,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('btn-schedule').onclick = async () => {
-        // 🔹 BLOQUEIO DE SALVAMENTO DE EVENTOS PASSADOS
         if (isEditingPastEvent) {
             alert("Este agendamento já passou e não pode ser alterado.");
             return;
@@ -401,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const endISO = Utils.toISOWithOffset(selectedDate, Utils.calculateEndTime(timeVal, duration));
         const endDateTime = new Date(endISO);
 
-        // Bloqueia se o usuário tentou transferir um agendamento novo/presente para um horário que já passou
         if (endDateTime <= new Date()) {
             alert("Não é permitido agendar para uma data e/ou horário que já passou.");
             return;
@@ -430,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Se estiver editando um evento que já tem as tags, precisamos preservá-las no novo título
             const hasConfirm = document.getElementById('check-confirmacao').checked ? ' [CONFIRMACAO_ENVIADA]' : '';
             const hasLembrete = document.getElementById('check-lembrete').checked ? ' [LEMBRETE_ENVIADO]' : '';
             const finalTitle = `${name} - ${phone}${hasConfirm}${hasLembrete}`;
